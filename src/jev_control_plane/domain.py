@@ -48,7 +48,7 @@ class DecisionView:
     view_id: str
     primitive: Primitive
     instructions: str
-    criteria: Mapping[str, Any] | tuple[str, ...] | None = None
+    criteria: Mapping[str, Any] | tuple[str, ...] | list[str] | None = None
     # Maps this view's typed answer string (or Noul "true"/"false") to a
     # declared action for the shared underlying decision.
     action_map: Mapping[str, ControlAction] = field(default_factory=dict)

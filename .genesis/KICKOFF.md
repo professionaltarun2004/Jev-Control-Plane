@@ -1,6 +1,6 @@
 # Kickoff
 
-- **State:** Milestone 1 core loop is implemented in the previously empty workspace.
-- **Evidence:** Ten offline unit tests pass against TypeSafe SDK 0.7.2 question/response models; see `evidence/m1-unit-tests.json`. Current official TypeSafe docs and SDK source were inspected. This workspace did not have Genesis installed, so the project-local harness artifacts were established directly.
-- **Blocker:** None for offline core. Live Jev example requires `TYPESAFE_API_KEY` and `typesafe-sdk>=0.7.2`.
-- **Next milestone:** Specify the Failure Lab's bounded evaluation data model, split protocol, and experiment runner for individual decisions first. Keep trajectory analysis in research evaluation, not runtime WATCH behavior.
+- **State:** Milestone 1 core loop is complete; Milestone 2 task T-2A is active.
+- **Evidence:** The pre-M2 gate passed 11/11 tests against TypeSafe SDK 0.7.2; details are in `evidence/m1-unit-tests.json`. The requested source-of-truth files were inspected before planning.
+- **Blocker:** None for local implementation. Live Jev calls still require `TYPESAFE_API_KEY`. Genesis CLI is not installed; project-local harness records continue to be maintained without a runtime dependency.
+- **Next action:** Finish minimal case/provenance types and split/lock enforcement, then implement and run the Jev-only mockable experiment path.
