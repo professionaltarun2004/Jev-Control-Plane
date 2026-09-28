@@ -1,0 +1,32 @@
+{
+  "task_id": "T-2B",
+  "command": ".venv\\Scripts\\python.exe examples\\run_mock_experiment.py",
+  "status": "pass",
+  "run_id": "m2-mock-development-20260928T132823282547Z",
+  "artifact_directory": "experiments/runs/m2-mock-development-20260928T132823282547Z",
+  "dataset_id": "failure-lab-synthetic-v1",
+  "split": "development",
+  "execution_mode": "mock",
+  "metrics": {
+    "cases_total": 8,
+    "completed_decisions": 8,
+    "correct_final_actions": 5,
+    "incorrect_final_actions": 3,
+    "accuracy": 0.625,
+    "error_rate": 0.375,
+    "action_counts": {"ALLOW": 0, "DENY": 0, "ESCALATE": 8},
+    "escalation_rate": 1.0,
+    "view_agreement_counts": {"agree": 2, "disagree": 6, "unmapped": 0},
+    "run_errors": 0,
+    "median_latency_ms": 0.2070500013360288,
+    "p95_latency_ms": null,
+    "throughput_cases_per_second": 1413.427563021247
+  },
+  "interpretation": "Deterministic mock plumbing only; none of these values measure live Jev performance.",
+  "timestamp_utc": "2026-09-28T13:28:23Z",
+  "limitations": [
+    "Eight hand-authored synthetic Development cases are not representative.",
+    "Mock answers and speed do not represent Jev outputs or service latency.",
+    "No threshold sweep, live validation, Holdout evaluation, calibration, or trajectory evaluation was run."
+  ]
+}

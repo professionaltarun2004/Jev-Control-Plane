@@ -1,6 +1,6 @@
 # Kickoff
 
-- **State:** Milestone 1 core loop is complete; Milestone 2 task T-2A is active.
-- **Evidence:** The pre-M2 gate passed 11/11 tests against TypeSafe SDK 0.7.2; details are in `evidence/m1-unit-tests.json`. The requested source-of-truth files were inspected before planning.
-- **Blocker:** None for local implementation. Live Jev calls still require `TYPESAFE_API_KEY`. Genesis CLI is not installed; project-local harness records continue to be maintained without a runtime dependency.
-- **Next action:** Finish minimal case/provenance types and split/lock enforcement, then implement and run the Jev-only mockable experiment path.
+- **State:** Milestone 2 foundation and bounded Failure Lab are complete.
+- **Evidence:** `.genesis/evidence/m2-tests.json` records 22 passing SDK-enabled unit tests. `.genesis/evidence/m2-mock-run.json` records the deterministic mock run; it is not Jev performance evidence.
+- **Blocker:** Live Jev calls require `TYPESAFE_API_KEY` and have not been run. Genesis CLI is not installed; project-local artifacts maintain the reproducibility workflow without a runtime dependency.
+- **Next action:** Milestone 3 should prepare a reviewed Validation dataset and protocol, then execute and preserve a live Jev validation run. Do not access Holdout until the configuration is locked from Validation.

@@ -1,0 +1,23 @@
+{
+  "task_id": "T-2",
+  "gate": ".venv\\Scripts\\python.exe -m unittest discover -s tests -v",
+  "status": "pass",
+  "tests_run": 22,
+  "failures": 0,
+  "errors": 0,
+  "scope": "SDK-enabled offline unit suite including Milestone 1 and Milestone 2 benchmark, split-lock, mock runner, error-retention, metrics, and matching-lock Holdout tests",
+  "timestamp_utc": "2026-09-28T13:28:00Z",
+  "additional_gate": {
+    "command": "python -m pytest -q",
+    "status": "pass",
+    "passed": 21,
+    "skipped": 1,
+    "warning": "pytest cache directory was not writable; no test failure resulted"
+  },
+  "compileall": "pass",
+  "limitations": [
+    "No live Jev service request was made; TypeSafe SDK model normalization is covered offline.",
+    "No statistical, calibration, representative-data, or external-validity claim follows from these tests.",
+    "The global pytest interpreter lacks the optional TypeSafe SDK test dependency; the project virtual environment suite ran it successfully."
+  ]
+}

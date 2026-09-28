@@ -48,6 +48,8 @@ Failure Lab, benchmark datasets, trajectory runtime behavior, WATCH, human revie
 
 **Executable gate:** inspect generated manifest, JSONL, summary, and documentation after T-2B.
 
-**Status:** in progress.
+**Status:** complete; test and mock evidence are recorded in `.genesis/evidence/m2-*.json`.
 
-**Next action:** implement T-2A case and split types, then proceed sequentially through T-2B and T-2C.
+## Explicitly outside T-2
+
+Live Jev performance, threshold sweeps, calibration, cost accounting, realistic labeled data, trajectory/task evaluation, framework adapters, and external baselines remain unmeasured or future work.
