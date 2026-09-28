@@ -1,0 +1,15 @@
+{
+  "task_id": "T-1",
+  "gate": ".venv\\Scripts\\python.exe -m unittest discover -s tests -v",
+  "status": "pass",
+  "tests_run": 10,
+  "failures": 0,
+  "errors": 0,
+  "scope": "Historical offline gate run before the final fail-closed validation additions; fake Jev adapter plus TypeSafe SDK 0.7.2 question/response models; no live service request was made",
+  "timestamp_utc": "2026-09-28T10:48:23Z",
+  "limitations": [
+    "The live TypeSafe API call was not run because no API key was provided.",
+    "The final source edits added probability/confidence validation and another policy case after this recorded run; the terminal runner then failed to start, so the current final suite is unverified.",
+    "The Genesis CLI is not installed in the environment; harness artifacts are project-local and Genesis is not a runtime dependency."
+  ]
+}

@@ -1,0 +1,9 @@
+{
+  "name": "m1-experimental-policy-defaults",
+  "status": "development-only",
+  "policy_version": "experimental-default-v1",
+  "minimum_confidence": 0.7,
+  "minimum_noul_probability": 0.8,
+  "noul_yes_threshold": 0.5,
+  "note": "Starting values for deterministic examples and local tests only. These are not calibrated, validated safety thresholds and must not be tuned on the locked holdout."
+}

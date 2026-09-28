@@ -1,0 +1,9 @@
+{
+  "task_id": "T-1",
+  "operation": "Install official SDK in ignored local virtual environment and verify question/response normalization using SDK models with a fake client",
+  "package": "typesafe-sdk==0.7.2",
+  "status": "pass",
+  "timestamp_utc": "2026-09-28T10:48:23Z",
+  "live_api_called": false,
+  "note": "The installed SDK's optional request_id property raises when its response header is absent. The adapter now safely records null for this unavailable metadata."
+}
