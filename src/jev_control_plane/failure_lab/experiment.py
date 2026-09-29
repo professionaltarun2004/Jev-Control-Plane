@@ -103,6 +103,7 @@ class ExperimentLock:
     frozen_config: Mapping[str, Any]
     validation_dataset_sha256: str
     validation_annotation_sha256: str
+    validation_run_sha256: str
     holdout_dataset_sha256: str
     holdout_annotation_sha256: str
     reproducibility: Mapping[str, Any]
@@ -117,6 +118,7 @@ class ExperimentLock:
         validation_run_id: str,
         snapshot: Mapping[str, str],
         reproducibility: Mapping[str, Any],
+        validation_run_sha256: str,
     ) -> "ExperimentLock":
         if config.split != DatasetSplit.VALIDATION:
             raise ValueError("LOCK can only freeze a Validation configuration")
@@ -130,6 +132,7 @@ class ExperimentLock:
             "source_validation_run_id": validation_run_id,
             "config_sha256": config.decision_config_digest(),
             "frozen_config": config.decision_config(),
+            "validation_run_sha256": validation_run_sha256,
             **dict(snapshot),
             "reproducibility": dict(reproducibility),
             "created_at": datetime.now(timezone.utc).isoformat(),
@@ -143,6 +146,7 @@ class ExperimentLock:
         reproducibility: Mapping[str, Any],
         validation_dataset_sha256: str,
         validation_annotation_sha256: str,
+        validation_run_sha256: str,
     ) -> HoldoutReadPermit:
         if config.split != DatasetSplit.HOLDOUT:
             raise ValueError("a configuration lock is only checked for Holdout runs")
@@ -159,6 +163,8 @@ class ExperimentLock:
             raise ValueError("Validation dataset changed after LOCK")
         if validation_annotation_sha256 != self.validation_annotation_sha256:
             raise ValueError("Validation annotations changed after LOCK")
+        if validation_run_sha256 != self.validation_run_sha256:
+            raise ValueError("Validation run artifacts changed after LOCK")
         for key in ("python", "typesafe_sdk", "git_revision", "code_tree_sha256", "protocol_sha256", "ground_truth_rules_sha256"):
             if reproducibility.get(key) != self.reproducibility.get(key):
                 raise ValueError(f"Holdout runtime/method metadata differs from LOCK: {key}")
@@ -173,6 +179,7 @@ class ExperimentLock:
             "frozen_config": dict(self.frozen_config),
             "validation_dataset_sha256": self.validation_dataset_sha256,
             "validation_annotation_sha256": self.validation_annotation_sha256,
+            "validation_run_sha256": self.validation_run_sha256,
             "holdout_dataset_sha256": self.holdout_dataset_sha256,
             "holdout_annotation_sha256": self.holdout_annotation_sha256,
             "reproducibility": dict(self.reproducibility),

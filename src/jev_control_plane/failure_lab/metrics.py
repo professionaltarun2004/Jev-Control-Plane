@@ -132,7 +132,10 @@ def _distribution(values: list[float]) -> dict[str, Any]:
 
 
 def _matched_pairs(rows: Iterable[Mapping[str, Any]]) -> list[dict[str, Any]]:
-    by_id = {row["case_id"]: row for row in rows}
+    rows = tuple(rows)
+    # Metrics can also be computed from small hand-built fixtures; rows without
+    # case identity cannot participate in a matched-pair join.
+    by_id = {row["case_id"]: row for row in rows if row.get("case_id") is not None}
     pairs = []
     for perturbed in rows:
         base_id = perturbed.get("base_case_id")
@@ -144,7 +147,7 @@ def _matched_pairs(rows: Iterable[Mapping[str, Any]]) -> list[dict[str, Any]]:
             continue
         pairs.append({
             "base_case_id": base_id,
-            "perturbed_case_id": perturbed["case_id"],
+            "perturbed_case_id": perturbed.get("case_id"),
             "family": perturbed.get("perturbation_family"),
             "expected_action_unchanged": base.get("expected_action") == perturbed.get("expected_action"),
             "base_final_action": base.get("final_action"),

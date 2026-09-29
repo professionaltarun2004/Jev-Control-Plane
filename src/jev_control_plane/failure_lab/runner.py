@@ -15,7 +15,7 @@ from typing import Any
 from uuid import uuid4
 
 from ..aggregator import TransparentEvidenceAggregator
-from ..domain import ControlAction, DecisionRequest
+from ..domain import ControlAction, DecisionRequest, Primitive
 from ..jev import JevAdapter, TypeSafeJevAdapter
 from ..policy import DeterministicPolicy
 from ..runtime import ControlPlane
@@ -54,14 +54,20 @@ class ExperimentRunner:
         run_id = run_id or f"{config.experiment_id}-{uuid4().hex[:12]}"
         permit: HoldoutReadPermit | None = None
         if config.split == DatasetSplit.HOLDOUT:
+            if config.execution_mode is not ExecutionMode.JEV_LIVE or self.adapter_override is not None:
+                raise ValueError("Holdout requires the locked live TypeSafe Jev execution path")
             if lock_id is None:
                 raise ValueError("Holdout evaluation requires a saved Validation configuration lock")
             lock = self.artifacts.read_lock(lock_id)
-            self.artifacts.assert_holdout_unclaimed(lock)
             runtime = self.artifacts.reproducibility_metadata()
             validation_case_digest = self.datasets.split_digest(DatasetSplit.VALIDATION)
             validation_annotation_digest = self.datasets.annotation_digest(DatasetSplit.VALIDATION)
-            permit = lock.verify(config, runtime, validation_case_digest, validation_annotation_digest)
+            validation_run_digest = self.artifacts.validation_run_digest(lock.source_validation_run_id)
+            permit = lock.verify(
+                config, runtime, validation_case_digest, validation_annotation_digest,
+                validation_run_digest,
+            )
+            self.artifacts.assert_holdout_unclaimed(lock)
             case_digest = self.datasets.split_digest(DatasetSplit.HOLDOUT, permit=permit, dataset_id=config.dataset_id)
             annotation_digest = self.datasets.annotation_digest(DatasetSplit.HOLDOUT, permit=permit, dataset_id=config.dataset_id)
             if case_digest != lock.holdout_dataset_sha256 or annotation_digest != lock.holdout_annotation_sha256:
@@ -81,8 +87,12 @@ class ExperimentRunner:
         if (case_digest != self.datasets.split_digest(config.split, permit=permit, dataset_id=config.dataset_id if permit else None)
                 or annotation_digest != self.datasets.annotation_digest(config.split, permit=permit, dataset_id=config.dataset_id if permit else None)):
             raise ValueError("dataset changed while the run inputs were being loaded")
-        run_dir = self.artifacts.begin_run(run_id, config, case_digest, annotation_digest, lock_id)
         adapter = self.adapter_override or self._adapter_for(config)
+        run_dir = self.artifacts.begin_run(
+            run_id, config, case_digest, annotation_digest, lock_id,
+            adapter_implementation=f"{type(adapter).__module__}.{type(adapter).__qualname__}",
+            adapter_injected_for_test=self.adapter_override is not None,
+        )
         control = ControlPlane(adapter, TransparentEvidenceAggregator(), DeterministicPolicy(config.policy))
         rows: list[dict[str, Any]] = []
         started = perf_counter()
@@ -151,7 +161,7 @@ class ExperimentRunner:
                 outcome_categories.append(OutcomeCategory.JEV_DECISION_ERROR.value)
             if policy_error is True:
                 outcome_categories.append(OutcomeCategory.POLICY_ACTION_ERROR.value)
-            evidence_conditions = self._evidence_conditions(record, config)
+            evidence_conditions = ExperimentRunner._evidence_conditions(record, config)
             return {
                 "run_id": run_id,
                 "experiment_id": config.experiment_id,

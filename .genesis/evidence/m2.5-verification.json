@@ -1,0 +1,83 @@
+{
+  "task_id": "T-2.5",
+  "status": "pass",
+  "scope": "Experimental protocol and research-readiness plumbing only",
+  "verification": {
+    "unittest": {
+      "command": ".venv\\Scripts\\python.exe -m unittest discover -s tests -v",
+      "result": "30 passed"
+    },
+    "pytest": {
+      "command": "python -m pytest -q -rs",
+      "result": "29 passed, 1 skipped",
+      "skip_reason": "Official SDK is not installed in the system Python used by pytest; installed-SDK adapter tests passed in the project virtual environment unittest run.",
+      "warning": "Pytest could not create its cache directory due to filesystem access; test run itself passed."
+    },
+    "compileall": {
+      "command": ".venv\\Scripts\\python.exe -m compileall src tests",
+      "result": "PASS"
+    },
+    "git_diff_check": {
+      "command": "git diff --check",
+      "result": "PASS"
+    },
+    "json_jsonl": {
+      "result": "22 files parsed successfully",
+      "scope": [
+        "experiments",
+        ".genesis"
+      ]
+    },
+    "unittest_system_python": {
+      "command": "python -m unittest discover -s tests -v",
+      "result": "29 passed, 1 skipped",
+      "skip_reason": "official SDK is not installed in this Python environment"
+    },
+    "compileall_system_python": {
+      "command": "python -m compileall src tests",
+      "result": "PASS"
+    }
+  },
+  "mock_smoke": {
+    "run_id": "m2-mock-development-20260929T192748964422Z",
+    "artifact_directory": "experiments/runs/m2-mock-development-20260929T192748964422Z",
+    "dataset_split": "development",
+    "execution_mode": "mock",
+    "cases": 8,
+    "correct": 5,
+    "incorrect": 3,
+    "escalated": 8,
+    "accuracy": 0.625,
+    "escalation_rate": 1.0,
+    "runner_errors": 0,
+    "median_mock_loop_latency_ms": 0.35739999930228805,
+    "p95_latency_ms": null,
+    "interpretation": "Deterministic synthetic plumbing evidence only; not a Jev performance result.",
+    "evidence_status_counts": {
+      "agreement": 1,
+      "disagreement": 7,
+      "partial": 0,
+      "unmapped": 0,
+      "mixed": 0
+    },
+    "matched_irrelevant_context_pair": {
+      "expected_action_unchanged": true,
+      "base_action": "ESCALATE",
+      "perturbed_action": "ESCALATE",
+      "base_correct": false,
+      "perturbed_correct": false
+    }
+  },
+  "not_run": [
+    "live Jev evaluation",
+    "Validation experiment",
+    "LOCK creation",
+    "Holdout evaluation"
+  ],
+  "limits": [
+    "Development dataset has eight developer-authored synthetic cases and is a plumbing fixture.",
+    "Validation and Holdout are not populated.",
+    "No calibration, real-world validity, primitive comparison, threshold sensitivity, cost, or trajectory result is established.",
+    "The local lock is an accidental-drift gate, not tamper-proof storage or a security boundary."
+  ]
+}

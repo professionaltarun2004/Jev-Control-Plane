@@ -40,9 +40,9 @@ python examples/decision_flow.py
 
 Run tests with `python -m unittest discover -s tests -v`.
 
-## Milestone 2 Failure Lab
+## Failure Lab
 
-The benchmark's primary unit is one decision. Each case stores only its ID, current state, decision question, and independent ground truth with provenance. Perturbation-family annotations are stored separately. The runner currently executes the Jev path only, with live TypeSafe and deterministic mock modes.
+The benchmark's primary unit is one decision. Cases store only the decision state/question and expected final action with ground-truth provenance; perturbation annotations are separate. The current Development cases use developer-authored synthetic rules. Their labels are independent of Jev outputs, but have not been independently validated and do not establish real-world validity. The runner executes the Jev path only, in live TypeSafe or explicitly labeled deterministic mock mode.
 
 ```mermaid
 flowchart LR
@@ -51,7 +51,7 @@ flowchart LR
     L --> H[Holdout final evaluation]
 ```
 
-The Holdout runner requires a write-once configuration lock created from Validation. Split folders and locks reduce accidental tuning leakage; they do not establish benchmark representativeness or statistical validity.
+The Holdout runner requires a write-once configuration lock created from a completed Validation run. Split folders and local digests reduce accidental tuning leakage; they do not establish benchmark representativeness or statistical validity. Validation and Holdout are currently unpopulated.
 
 ## Results
 
@@ -59,7 +59,8 @@ The Holdout runner requires a write-once configuration lock created from Validat
 
 ## Research and contributor notes
 
-- [Failure Lab protocol and metric definitions](experiments/README.md)
+- [Authoritative experimental protocol](EXPERIMENT_PROTOCOL.md)
+- [Failure Lab run guide](experiments/README.md)
 - [Dataset schema and split layout](experiments/datasets/README.md)
 - [Ground-truth construction rules](experiments/datasets/ground_truth_rules.md)
 - [Project specification](SPEC.md)

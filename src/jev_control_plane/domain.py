@@ -68,10 +68,12 @@ class DecisionView:
             raise ValueError("view_id must not be empty")
         if not self.instructions.strip():
             raise ValueError("view instructions must not be empty")
-        if self.primitive is Primitive.CHOICE and not self.criteria:
-            raise ValueError("Choice views require non-empty criteria")
-        if self.primitive is Primitive.SCORE and not self.criteria:
-            raise ValueError("Score views require non-empty criteria")
+        if self.primitive is Primitive.CHOICE and (not isinstance(self.criteria, Mapping) or not self.criteria):
+            raise ValueError("Choice views require a non-empty option-to-description mapping")
+        if self.primitive is Primitive.SCORE:
+            if not isinstance(self.criteria, (tuple, list)) or not self.criteria:
+                raise ValueError("Score views require an ordered, non-empty risk rubric")
+            object.__setattr__(self, "criteria", tuple(self.criteria))
 
 
 @dataclass(frozen=True)

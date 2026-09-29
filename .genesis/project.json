@@ -1,15 +1,16 @@
 {
   "project": "Jev Control Plane",
   "workflow": "new-product",
-  "phase": "implementation-milestone-2",
-  "objective": "Build a bounded reproducible Failure Lab around the existing Jev control loop.",
+  "phase": "research-readiness-milestone-2.5",
+  "objective": "Make Jev Failure Lab experiments methodologically explicit and protect Validation-to-Holdout configuration and data integrity without making live or Holdout claims.",
   "specification": "SPEC.md",
-  "active_task": null,
+  "active_task": "T-2.5",
   "tasks": [
     {"id": "T-1", "status": "complete", "outcome": "Typed domain, official Jev adapter, transparent evidence, deterministic policy, structured record, tests, and example form one understandable decision loop.", "risk": "medium", "requirements": ["FR-1", "FR-2", "FR-3", "FR-4", "FR-5", "FR-6", "NFR-1", "NFR-2", "NFR-3", "NFR-4", "AC-1", "AC-2", "AC-3", "AC-4", "AC-5"], "gate": "python -m unittest discover -s tests -v", "evidence": ".genesis/evidence/m1-unit-tests.json"},
     {"id": "T-2A", "status": "complete", "outcome": "Minimal benchmark cases with ground-truth provenance and split isolation; Holdout is gated by a frozen Validation configuration.", "risk": "medium", "requirements": ["M2-FR-1", "M2-FR-2", "M2-FR-3", "M2-FR-4", "M2-AC-1", "M2-AC-2", "M2-AC-3"], "gate": "python -m unittest discover -s tests -v", "evidence": ".genesis/evidence/m2-tests.json"},
     {"id": "T-2B", "status": "complete", "outcome": "Jev-only experiment runner with deterministic mock mode, retained errors, decision records, and supported metrics.", "risk": "medium", "requirements": ["M2-FR-5", "M2-FR-6", "M2-FR-7", "M2-FR-8", "M2-AC-4", "M2-AC-5", "M2-AC-6", "M2-AC-7"], "gate": "python -m unittest discover -s tests -v; python examples/run_mock_experiment.py", "evidence": ".genesis/evidence/m2-mock-run.json"},
-    {"id": "T-2C", "status": "complete", "outcome": "Research and contributor documentation with evidence-backed mock output, limitations, and future work separated.", "risk": "low", "requirements": ["M2-FR-9", "M2-NFR-1", "M2-NFR-2", "M2-NFR-3", "M2-NFR-4", "M2-AC-8", "M2-AC-9"], "gate": "Inspect generated experiment artifacts and documentation", "evidence": ".genesis/evidence/m2-mock-run.json"}
+    {"id": "T-2C", "status": "complete", "outcome": "Research and contributor documentation with evidence-backed mock output, limitations, and future work separated.", "risk": "low", "requirements": ["M2-FR-9", "M2-NFR-1", "M2-NFR-2", "M2-NFR-3", "M2-NFR-4", "M2-AC-8", "M2-AC-9"], "gate": "Inspect generated experiment artifacts and documentation", "evidence": ".genesis/evidence/m2-mock-run.json"},
+    {"id": "T-2.5", "status": "complete", "outcome": "Authoritative executable protocol, strengthened local lock/split plumbing, evidence/outcome distinction, and verified documentation; live Jev and Holdout remain unrun.", "risk": "high", "requirements": ["M2.5-FR-1", "M2.5-FR-2", "M2.5-FR-3", "M2.5-FR-4", "M2.5-FR-5", "M2.5-FR-6", "M2.5-FR-7", "M2.5-AC-1", "M2.5-AC-2", "M2.5-AC-3", "M2.5-AC-4", "M2.5-AC-5"], "gate": "python -m unittest discover -s tests -v; python -m compileall src tests; git diff --check; validate JSON/JSONL artifacts", "evidence": ".genesis/evidence/m2.5-verification.json"}
   ],
   "experiment_lifecycle": ["development", "validation", "LOCK", "holdout"],
   "genesis_runtime_dependency": false

@@ -19,6 +19,17 @@ This is an open research question. The protocol does not assume Jev is correct, 
 
 The primary unit is **one underlying agent decision**. Multiple Jev questions are views of that same decision, state, and action—not unrelated questions. Secondary units are decision step, trajectory, and task. This protocol and V1 runner evaluate decisions only; it does not implement trajectory or task runtime control.
 
+```mermaid
+flowchart LR
+    A[Agent] --> R[DecisionRequest: current state + question]
+    R --> V[Decision views of the same underlying decision]
+    V --> J[Jev Noul / Choice / Score]
+    J --> E[Typed answers + raw probabilities / confidence]
+    E --> G[Transparent evidence aggregation]
+    G --> P[Deterministic policy]
+    P --> C[ALLOW / DENY / ESCALATE]
+```
+
 For one underlying decision, for example “Should the agent execute this action?”:
 
 | Primitive | View interpretation | Native evidence retained |
@@ -146,7 +157,7 @@ flowchart LR
 | LOCK | After a complete, error-free Validation run, freeze the exact decision config and relevant input/runtime digests. |
 | Holdout | One locked final run for the selected configuration. Do not inspect intermediate Holdout outcomes, tune, or rerun the same Holdout content. |
 
-The local lock is a write-once accidental-drift guard, not a cryptographic signature or a security boundary. It binds the config, source Validation run and its case/annotation digests, Holdout case/annotation digests, Jev model, Python/SDK versions, protocol and ground-truth-method digests, Git revision, and source-tree digest. The runner verifies the lock before Holdout content is loaded and claims the Holdout digest once. A repeat attempt on the same content is rejected, including through another lock. An interrupted attempt remains claimed; preserve it and report it instead of silently rerunning. A changed config, SDK, source tree, protocol, labels, or dataset requires a new Validation cycle before a newly prepared final evaluation.
+The local lock is a write-once accidental-drift guard, not a cryptographic signature or a security boundary. It binds the config, source Validation run ID and digest of its manifest/results/summary, Validation case/annotation digests, Holdout case/annotation digests, Jev model, Python/SDK versions, protocol and ground-truth-method digests, Git revision, and source-tree digest. The runner verifies the lock before Holdout content is loaded and claims the Holdout digest once. A repeat attempt on the same content is rejected, including through another lock. An interrupted attempt remains claimed; preserve it and report it instead of silently rerunning. A changed config, SDK, source tree, protocol, labels, run artifact, or dataset requires a new Validation cycle before a newly prepared final evaluation.
 
 These controls do not stop a person from copying files, editing both a lock and its digest, changing the research question, or selectively reporting runs. Protect Holdout files and preserve all run/claim artifacts. Split existence alone does not establish representativeness, statistical power, blinding, label validity, or external validity.
 
@@ -177,6 +188,7 @@ Calibration/ECE, Brier score, risk-coverage, Safe Autonomous Coverage, cost, and
 - Development contains eight small synthetic plumbing cases; one irrelevant-context case is paired with a clean case.
 - Validation and Holdout datasets are not populated. No Validation lock or Holdout run exists.
 - The mock adapter is a deterministic harness fixture, not a model of Jev behavior. Mock metrics are not experimental findings.
+- Three preserved pre-M2.5 mock runs use an older artifact schema that counted cross-view disagreement as a failure category. They are archival plumbing records; do not pool or compare their failure taxonomy with protocol-conforming output.
 - No live Jev performance, calibration, causal perturbation effect, primitive comparison, multi-view benefit, or trajectory result has been measured.
 - Current runtime verification may test Noul/Choice/Score shapes, but only an actual live Jev run can provide observations for this research question.
 

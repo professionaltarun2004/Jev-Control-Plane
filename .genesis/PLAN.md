@@ -53,3 +53,19 @@ Failure Lab, benchmark datasets, trajectory runtime behavior, WATCH, human revie
 ## Explicitly outside T-2
 
 Live Jev performance, threshold sweeps, calibration, cost accounting, realistic labeled data, trajectory/task evaluation, framework adapters, and external baselines remain unmeasured or future work.
+
+## T-2.5 — Experimental protocol and research readiness
+
+**Outcome:** publish an executable decision-level protocol; preserve minimum case schema and truth provenance; harden split/lock plumbing; separate evidence observations from outcome errors; validate Score mappings and matched perturbations; document what is and is not measured.
+
+**Boundaries:** no live Jev call, Holdout run, Validation dataset fabrication, new provider, framework integration, WATCH, dashboard, or benchmark claim.
+
+**Risk:** high (research leakage and interpretation).
+
+**Requirements:** M2.5-FR-1–M2.5-FR-7 and M2.5-AC-1–M2.5-AC-5 in `SPEC.md`.
+
+**Executable gates:** `python -m unittest discover -s tests -v`; `python -m compileall src tests`; `git diff --check`; JSON/JSONL parse validation; `pytest` where available.
+
+**Status:** complete; offline tests, syntax, artifact parsing, mock plumbing run, and diff checks passed. Live Jev and Holdout remain unrun.
+
+**Evidence:** `.genesis/evidence/m2.5-verification.json`.

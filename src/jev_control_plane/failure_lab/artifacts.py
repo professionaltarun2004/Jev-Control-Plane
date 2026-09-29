@@ -44,6 +44,10 @@ class ExperimentArtifactStore:
         summary = json.loads((run_dir / "summary.json").read_text(encoding="utf-8"))
         if manifest.get("dataset_split") != DatasetSplit.VALIDATION or manifest.get("status") != "complete":
             raise ValueError("LOCK requires a complete, error-free Validation run")
+        if manifest.get("execution_mode") != "jev_live":
+            raise ValueError("LOCK requires a live Jev Validation run; mock runs are plumbing evidence only")
+        if manifest.get("adapter_implementation") != "jev_control_plane.jev.TypeSafeJevAdapter" or manifest.get("adapter_injected_for_test"):
+            raise ValueError("LOCK requires the unmodified TypeSafeJevAdapter execution path")
         if manifest.get("decision_config_sha256") != config.decision_config_digest():
             raise ValueError("Validation run configuration does not match the requested LOCK config")
         if summary.get("run_errors", 0) != 0:
@@ -63,7 +67,10 @@ class ExperimentArtifactStore:
         for key in ("python", "typesafe_sdk", "git_revision", "code_tree_sha256", "protocol_sha256", "ground_truth_rules_sha256"):
             if validation_software.get(key) != software.get(key):
                 raise ValueError(f"Validation run {key} differs from current LOCK environment")
-        lock = ExperimentLock.from_validation(config, lock_id, validation_run_id, snapshot, software)
+        lock = ExperimentLock.from_validation(
+            config, lock_id, validation_run_id, snapshot, software,
+            self.validation_run_digest(validation_run_id),
+        )
         self.assert_holdout_unclaimed(lock)
         path = self.locks_dir / f"{self._safe_id(lock_id)}.json"
         path.parent.mkdir(parents=True, exist_ok=True)
@@ -138,6 +145,20 @@ class ExperimentArtifactStore:
             ),
         }
 
+    def validation_run_digest(self, run_id: str) -> str:
+        """Bind the lock to the Validation manifest, cases, and metric summary."""
+        run_dir = self.runs_dir / self._safe_id(run_id)
+        digest = hashlib.sha256()
+        for filename in ("manifest.json", "results.jsonl", "summary.json"):
+            path = run_dir / filename
+            payload = path.read_bytes()
+            name = filename.encode("utf-8")
+            digest.update(len(name).to_bytes(4, "big"))
+            digest.update(name)
+            digest.update(len(payload).to_bytes(8, "big"))
+            digest.update(payload)
+        return digest.hexdigest()
+
     def begin_run(
         self,
         run_id: str,
@@ -145,6 +166,8 @@ class ExperimentArtifactStore:
         dataset_digest: str,
         annotation_digest: str,
         lock_id: str | None,
+        adapter_implementation: str,
+        adapter_injected_for_test: bool,
     ) -> Path:
         run_dir = self.runs_dir / self._safe_id(run_id)
         run_dir.mkdir(parents=True, exist_ok=False)
@@ -159,6 +182,8 @@ class ExperimentArtifactStore:
             "dataset_split_sha256": dataset_digest,
             "annotation_sha256": annotation_digest,
             "execution_mode": config.execution_mode.value,
+            "adapter_implementation": adapter_implementation,
+            "adapter_injected_for_test": adapter_injected_for_test,
             "jev_model": config.jev_model,
             "views": json_safe(config.views),
             "policy": json_safe(config.policy),

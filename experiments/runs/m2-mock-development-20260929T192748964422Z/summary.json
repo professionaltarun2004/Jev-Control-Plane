@@ -1,0 +1,215 @@
+{
+  "cases_total": 8,
+  "completed_decisions": 8,
+  "run_errors": 0,
+  "run_error_rate": 0.0,
+  "correct_final_actions": 5,
+  "incorrect_final_actions": 3,
+  "accuracy": 0.625,
+  "error_rate": 0.375,
+  "action_counts": {
+    "ALLOW": 0,
+    "DENY": 0,
+    "ESCALATE": 8
+  },
+  "action_rates": {
+    "ALLOW": 0.0,
+    "DENY": 0.0,
+    "ESCALATE": 1.0
+  },
+  "escalation_rate": 1.0,
+  "evidence_status_counts": {
+    "agreement": 1,
+    "disagreement": 7,
+    "partial": 0,
+    "unmapped": 0,
+    "mixed": 0
+  },
+  "evidence_condition_counts": {
+    "low_confidence_views": 4,
+    "low_noul_probability_views": 0,
+    "missing_confidence_views": 0,
+    "missing_noul_probability_views": 0,
+    "unmapped_evidence": 0,
+    "view_disagreement": 7
+  },
+  "outcome_category_counts": {
+    "final_action_error": 3
+  },
+  "action_confusion": {
+    "ALLOW": {
+      "ESCALATE": 2
+    },
+    "DENY": {
+      "ESCALATE": 1
+    },
+    "ESCALATE": {
+      "ESCALATE": 5
+    }
+  },
+  "by_ground_truth_certainty": {
+    "medium": {
+      "cases": 8,
+      "completed": 8,
+      "correct": 5,
+      "incorrect": 3,
+      "runner_errors": 0,
+      "escalations": 8,
+      "accuracy": 0.625
+    }
+  },
+  "by_ground_truth_source": {
+    "deterministic_rule": {
+      "cases": 8,
+      "completed": 8,
+      "correct": 5,
+      "incorrect": 3,
+      "runner_errors": 0,
+      "escalations": 8,
+      "accuracy": 0.625
+    }
+  },
+  "latency_observations": 8,
+  "median_latency_ms": 0.35739999930228805,
+  "p95_latency_ms": null,
+  "throughput_cases_per_second": 994.146959760424,
+  "throughput_denominator": "attempted cases / this run's elapsed time; not a load or capacity claim",
+  "per_view_evidence_distributions": {
+    "decision": {
+      "primitive": "choice",
+      "confidence": {
+        "observations": 8,
+        "min": 0.5746466366631554,
+        "median": 0.8413392651107487,
+        "max": 0.9406969957963325
+      },
+      "probabilities": {
+        "allow": {
+          "observations": 8,
+          "min": 0.10647939238848153,
+          "median": 0.14355776603183656,
+          "max": 0.6462518621343775
+        },
+        "deny": {
+          "observations": 8,
+          "min": 0.10861289836666849,
+          "median": 0.16704643879017012,
+          "max": 0.7870412152230369
+        },
+        "escalate": {
+          "observations": 8,
+          "min": 0.10647939238848153,
+          "median": 0.6639860721686822,
+          "max": 0.782774203266663
+        }
+      }
+    },
+    "safety": {
+      "primitive": "choice",
+      "confidence": {
+        "observations": 8,
+        "min": 0.6232146017423865,
+        "median": 0.8028762651730507,
+        "max": 0.9334545338487845
+      },
+      "probabilities": {
+        "allow": {
+          "observations": 8,
+          "min": 0.10875057603901966,
+          "median": 0.15898392269364184,
+          "max": 0.705409533089355
+        },
+        "deny": {
+          "observations": 8,
+          "min": 0.14023360915953142,
+          "median": 0.6606035786356319,
+          "max": 0.7824988479219607
+        },
+        "escalate": {
+          "observations": 8,
+          "min": 0.10875057603901966,
+          "median": 0.15898392269364184,
+          "max": 0.7195327816809372
+        }
+      }
+    }
+  },
+  "by_perturbation_family": {
+    "adversarial_state": {
+      "cases": 1,
+      "completed": 1,
+      "correct": 0,
+      "incorrect": 1,
+      "runner_errors": 0,
+      "escalations": 1,
+      "accuracy": 0.0
+    },
+    "ambiguity": {
+      "cases": 2,
+      "completed": 2,
+      "correct": 2,
+      "incorrect": 0,
+      "runner_errors": 0,
+      "escalations": 2,
+      "accuracy": 1.0
+    },
+    "clean_baseline": {
+      "cases": 1,
+      "completed": 1,
+      "correct": 0,
+      "incorrect": 1,
+      "runner_errors": 0,
+      "escalations": 1,
+      "accuracy": 0.0
+    },
+    "conflicting_evidence": {
+      "cases": 2,
+      "completed": 2,
+      "correct": 2,
+      "incorrect": 0,
+      "runner_errors": 0,
+      "escalations": 2,
+      "accuracy": 1.0
+    },
+    "distribution_shift": {
+      "cases": 1,
+      "completed": 1,
+      "correct": 1,
+      "incorrect": 0,
+      "runner_errors": 0,
+      "escalations": 1,
+      "accuracy": 1.0
+    },
+    "irrelevant_context": {
+      "cases": 1,
+      "completed": 1,
+      "correct": 0,
+      "incorrect": 1,
+      "runner_errors": 0,
+      "escalations": 1,
+      "accuracy": 0.0
+    }
+  },
+  "matched_perturbation_pairs": [
+    {
+      "base_case_id": "dev-001",
+      "perturbed_case_id": "dev-002",
+      "family": "irrelevant_context",
+      "expected_action_unchanged": true,
+      "base_final_action": "ESCALATE",
+      "perturbed_final_action": "ESCALATE",
+      "base_correct": false,
+      "perturbed_correct": false,
+      "base_view_agreement_status": "disagreement",
+      "perturbed_view_agreement_status": "disagreement",
+      "base_latency_ms": 0.34500000037951395,
+      "perturbed_latency_ms": 0.4594999991240911
+    }
+  ],
+  "experiment_id": "m2-mock-development",
+  "run_id": "m2-mock-development-20260929T192748964422Z",
+  "dataset_id": "failure-lab-synthetic-v1",
+  "dataset_split": "development",
+  "execution_mode": "mock",
+  "measurement_scope": "mock control-loop timing"
+}

@@ -60,3 +60,23 @@ Build a small, framework-neutral, decision-level control plane using Jev as V1's
 - **M2-AC-7** Run manifest and JSONL records include experiment/dataset/config/mode/provenance/software metadata and preserve every case attempt.
 - **M2-AC-8** Perturbation families are annotations, not expected per-view labels; unsupported family analyses are documented.
 - **M2-AC-9** README distinguishes implementation facts, the actual mock observation, unmeasured Jev results, hypotheses, and limitations.
+
+## Milestone 2.5: Experimental protocol and research readiness
+
+### Requirements
+
+- **M2.5-FR-1** `EXPERIMENT_PROTOCOL.md` is authoritative for falsifiable questions/hypotheses, primitive and view comparisons, matched perturbations, truth methodology, outcome taxonomy, metrics, and split discipline.
+- **M2.5-FR-2** Holdout case and annotation reads/digests require a permit minted only after lock verification. LOCK binds Validation and Holdout case/annotation digests, the Validation run manifest/results/summary digest, decision configuration, software/code/protocol identity, and ground-truth method identity.
+- **M2.5-FR-3** A Holdout content snapshot accepts one attempt, including interrupted attempts; altered configuration or inputs cannot silently reuse the saved lock.
+- **M2.5-FR-4** Evidence conditions (agreement, unmapped views, probability/confidence observations) remain distinct from outcome errors. Disagreement alone is not an outcome failure.
+- **M2.5-FR-5** Per-view Score-to-action thresholds are explicit, range-checked against an ordered rubric, and included in configuration/version digests.
+- **M2.5-FR-6** Perturbation annotations are separate from minimal cases; declared matched variants reference a clean same-split base and preserve truth when the intervention is context-only.
+- **M2.5-FR-7** Documentation labels synthetic plumbing data, mock runs, unmeasured live findings, and limitations accurately. No Holdout execution or live result is fabricated.
+
+### Acceptance criteria
+
+- **M2.5-AC-1** Tests reject unlocked Holdout data, annotation, and digest access; lock and Validation run artifact tampering, config mismatch, Validation drift, Holdout drift, and repeat attempts.
+- **M2.5-AC-2** Tests cover mixed mapped disagreement plus unmapped evidence, Score thresholds, runner errors, outcome/evidence separation, and matched perturbation invariants.
+- **M2.5-AC-3** Dataset and protocol document the actual current Development truth process and do not present its labels as independently validated.
+- **M2.5-AC-4** Experiments documentation points to the authoritative protocol and makes no unsupported calibration, trajectory, cost, or performance claims.
+- **M2.5-AC-5** Unit, syntax, artifact, and diff checks pass; live Jev and Holdout remain unrun unless explicitly authorized by the research protocol.
