@@ -20,6 +20,16 @@ class ControlAction(StrEnum):
     ESCALATE = "ESCALATE"
 
 
+class AgreementStatus(StrEnum):
+    """Summary of mapped view actions without hiding mixed evidence states."""
+
+    AGREEMENT = "agreement"
+    DISAGREEMENT = "disagreement"
+    PARTIAL = "partial"
+    UNMAPPED = "unmapped"
+    MIXED = "mixed"
+
+
 @dataclass(frozen=True)
 class AgentState:
     user_request: str
@@ -107,6 +117,14 @@ class DecisionEvidence:
     action_hints: Mapping[str, ControlAction | None]
     agreement: bool | None
     conflicts: tuple[str, ...]
+    unmapped_views: tuple[str, ...] = ()
+    disagreeing_views: tuple[str, ...] = ()
+    agreement_status: AgreementStatus = AgreementStatus.UNMAPPED
+
+    @property
+    def mapped_actions(self) -> Mapping[str, ControlAction]:
+        """Expose only interpreted actions while retaining ``action_hints`` raw map."""
+        return {view_id: action for view_id, action in self.action_hints.items() if action is not None}
 
 
 @dataclass(frozen=True)

@@ -35,6 +35,10 @@ class GroundTruthProvenance:
     certainty: GroundTruthCertainty
 
     def __post_init__(self) -> None:
+        if not isinstance(self.source, GroundTruthSource):
+            object.__setattr__(self, "source", GroundTruthSource(self.source))
+        if not isinstance(self.certainty, GroundTruthCertainty):
+            object.__setattr__(self, "certainty", GroundTruthCertainty(self.certainty))
         if not self.reference.strip():
             raise ValueError("ground-truth reference must not be empty")
 
@@ -106,28 +110,46 @@ class PerturbationFamily(StrEnum):
     CONFLICTING_EVIDENCE = "conflicting_evidence"
     DISTRIBUTION_SHIFT = "distribution_shift"
     ADVERSARIAL_STATE = "adversarial_state"
-    CROSS_VIEW_DISAGREEMENT = "cross_view_disagreement"
-    THRESHOLD_SENSITIVITY = "threshold_sensitivity"
 
 
 @dataclass(frozen=True)
 class CaseAnnotation:
-    """Secondary case-design label kept outside the minimal case record."""
+    """Case-design annotation; view behavior is always derived after inference."""
 
     case_id: str
     family: PerturbationFamily
+    description: str
+    base_case_id: str | None = None
 
     def __post_init__(self) -> None:
         if not self.case_id.strip():
             raise ValueError("annotation case_id must not be empty")
+        if not self.description.strip():
+            raise ValueError("annotation description must not be empty")
+        if self.base_case_id is not None and (not self.base_case_id.strip() or self.base_case_id == self.case_id):
+            raise ValueError("base_case_id must identify a different, non-empty base case")
 
-    def to_dict(self) -> dict[str, str]:
-        return {"case_id": self.case_id, "family": self.family.value}
+    def to_dict(self) -> dict[str, str | None]:
+        return {
+            "case_id": self.case_id,
+            "family": self.family.value,
+            "description": self.description,
+            "base_case_id": self.base_case_id,
+        }
+
+    @classmethod
+    def from_dict(cls, value: Mapping[str, Any]) -> "CaseAnnotation":
+        if set(value) != {"case_id", "family", "description", "base_case_id"}:
+            raise ValueError("annotation must contain case_id, family, description, and base_case_id")
+        return cls(
+            str(value["case_id"]), PerturbationFamily(value["family"]),
+            str(value["description"]),
+            str(value["base_case_id"]) if value["base_case_id"] is not None else None,
+        )
 
 
-class FailureCategory(StrEnum):
+class OutcomeCategory(StrEnum):
+    FINAL_ACTION_ERROR = "final_action_error"
     JEV_DECISION_ERROR = "jev_decision_error"
     POLICY_ACTION_ERROR = "policy_action_error"
-    CROSS_VIEW_DISAGREEMENT = "cross_view_disagreement"
-    UNMAPPED_EVIDENCE = "unmapped_evidence"
-    RUN_ERROR = "run_error"
+    RUNNER_ERROR = "runner_error"

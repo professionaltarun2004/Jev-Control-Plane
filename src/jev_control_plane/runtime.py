@@ -26,7 +26,7 @@ class ControlPlane:
         if decision_id != request.decision_id:
             request = DecisionRequest(request.agent_state, request.question, request.views, request.metadata, decision_id)
         results = self.jev.evaluate(request)
-        evidence = self.aggregator.aggregate(request, results)
+        evidence = self.aggregator.aggregate(request, results, self.policy.config)
         policy_result = self.policy.decide(evidence)
         fingerprint_source = json.dumps(
             json_safe({"agent_state": request.agent_state, "question": request.question}),

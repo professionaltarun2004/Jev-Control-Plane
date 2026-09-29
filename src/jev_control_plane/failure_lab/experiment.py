@@ -8,7 +8,7 @@ matches the saved lock.
 
 from __future__ import annotations
 
-from dataclasses import asdict, dataclass
+from dataclasses import dataclass
 from datetime import datetime, timezone
 from enum import StrEnum
 import hashlib
@@ -18,7 +18,7 @@ from typing import Any, Mapping
 from ..domain import ControlAction, DecisionView, Primitive
 from ..policy import PolicyConfig
 from ..records import json_safe
-from .dataset import ALL_DATASET_SPLITS, DatasetSplit
+from .dataset import ALL_DATASET_SPLITS, DatasetSplit, HoldoutReadPermit, _issue_holdout_read_permit
 
 
 class ExecutionMode(StrEnum):
@@ -98,35 +98,86 @@ class ExperimentConfig:
 class ExperimentLock:
     lock_id: str
     dataset_id: str
-    source_experiment_id: str
+    source_validation_run_id: str
     config_sha256: str
     frozen_config: Mapping[str, Any]
+    validation_dataset_sha256: str
+    validation_annotation_sha256: str
+    holdout_dataset_sha256: str
+    holdout_annotation_sha256: str
+    reproducibility: Mapping[str, Any]
     created_at: str
+    lock_sha256: str
 
     @classmethod
-    def from_validation(cls, config: ExperimentConfig, lock_id: str) -> "ExperimentLock":
+    def from_validation(
+        cls,
+        config: ExperimentConfig,
+        lock_id: str,
+        validation_run_id: str,
+        snapshot: Mapping[str, str],
+        reproducibility: Mapping[str, Any],
+    ) -> "ExperimentLock":
         if config.split != DatasetSplit.VALIDATION:
             raise ValueError("LOCK can only freeze a Validation configuration")
         if not lock_id.strip():
             raise ValueError("lock_id must not be empty")
-        return cls(
-            lock_id=lock_id,
-            dataset_id=config.dataset_id,
-            source_experiment_id=config.experiment_id,
-            config_sha256=config.decision_config_digest(),
-            frozen_config=config.decision_config(),
-            created_at=datetime.now(timezone.utc).isoformat(),
-        )
+        if not validation_run_id.strip():
+            raise ValueError("LOCK requires a completed Validation run ID")
+        body = {
+            "lock_id": lock_id,
+            "dataset_id": config.dataset_id,
+            "source_validation_run_id": validation_run_id,
+            "config_sha256": config.decision_config_digest(),
+            "frozen_config": config.decision_config(),
+            **dict(snapshot),
+            "reproducibility": dict(reproducibility),
+            "created_at": datetime.now(timezone.utc).isoformat(),
+        }
+        lock_digest = hashlib.sha256(json.dumps(body, sort_keys=True, separators=(",", ":"), allow_nan=False).encode()).hexdigest()
+        return cls(**body, lock_sha256=lock_digest)
 
-    def verify(self, config: ExperimentConfig) -> None:
+    def verify(
+        self,
+        config: ExperimentConfig,
+        reproducibility: Mapping[str, Any],
+        validation_dataset_sha256: str,
+        validation_annotation_sha256: str,
+    ) -> HoldoutReadPermit:
         if config.split != DatasetSplit.HOLDOUT:
             raise ValueError("a configuration lock is only checked for Holdout runs")
-        frozen_json = json.dumps(self.frozen_config, sort_keys=True, separators=(",", ":"), allow_nan=False)
-        frozen_digest = hashlib.sha256(frozen_json.encode("utf-8")).hexdigest()
-        if frozen_digest != self.config_sha256:
-            raise ValueError("saved configuration lock digest does not match its frozen configuration")
+        body = self._body()
+        frozen_digest = hashlib.sha256(json.dumps(body, sort_keys=True, separators=(",", ":"), allow_nan=False).encode()).hexdigest()
+        if frozen_digest != self.lock_sha256:
+            raise ValueError("saved lock contents do not match their integrity digest")
+        config_digest = hashlib.sha256(json.dumps(self.frozen_config, sort_keys=True, separators=(",", ":"), allow_nan=False).encode()).hexdigest()
+        if config_digest != self.config_sha256:
+            raise ValueError("frozen configuration does not match its digest")
         if config.dataset_id != self.dataset_id or config.decision_config_digest() != self.config_sha256:
             raise ValueError("Holdout configuration does not match the frozen Validation configuration")
+        if validation_dataset_sha256 != self.validation_dataset_sha256:
+            raise ValueError("Validation dataset changed after LOCK")
+        if validation_annotation_sha256 != self.validation_annotation_sha256:
+            raise ValueError("Validation annotations changed after LOCK")
+        for key in ("python", "typesafe_sdk", "git_revision", "code_tree_sha256", "protocol_sha256", "ground_truth_rules_sha256"):
+            if reproducibility.get(key) != self.reproducibility.get(key):
+                raise ValueError(f"Holdout runtime/method metadata differs from LOCK: {key}")
+        return _issue_holdout_read_permit(self.lock_id, self.dataset_id, self.config_sha256)
 
-    def to_dict(self) -> dict[str, str]:
-        return asdict(self)
+    def _body(self) -> dict[str, Any]:
+        return {
+            "lock_id": self.lock_id,
+            "dataset_id": self.dataset_id,
+            "source_validation_run_id": self.source_validation_run_id,
+            "config_sha256": self.config_sha256,
+            "frozen_config": dict(self.frozen_config),
+            "validation_dataset_sha256": self.validation_dataset_sha256,
+            "validation_annotation_sha256": self.validation_annotation_sha256,
+            "holdout_dataset_sha256": self.holdout_dataset_sha256,
+            "holdout_annotation_sha256": self.holdout_annotation_sha256,
+            "reproducibility": dict(self.reproducibility),
+            "created_at": self.created_at,
+        }
+
+    def to_dict(self) -> dict[str, Any]:
+        return {**self._body(), "lock_sha256": self.lock_sha256}

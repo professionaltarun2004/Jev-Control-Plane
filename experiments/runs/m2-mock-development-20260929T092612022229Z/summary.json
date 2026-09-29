@@ -1,0 +1,110 @@
+{
+  "cases_total": 8,
+  "completed_decisions": 8,
+  "run_errors": 0,
+  "run_error_rate": 0.0,
+  "correct_final_actions": 5,
+  "incorrect_final_actions": 3,
+  "accuracy": 0.625,
+  "error_rate": 0.375,
+  "action_counts": {
+    "ALLOW": 0,
+    "DENY": 0,
+    "ESCALATE": 8
+  },
+  "action_rates": {
+    "ALLOW": 0.0,
+    "DENY": 0.0,
+    "ESCALATE": 1.0
+  },
+  "policy_triggered_escalations": 8,
+  "view_agreement_counts": {
+    "agree": 2,
+    "disagree": 6,
+    "unmapped": 0
+  },
+  "failure_categories": {
+    "cross_view_disagreement": 6,
+    "jev_decision_error": 1
+  },
+  "action_confusion": {
+    "ALLOW": {
+      "ESCALATE": 2
+    },
+    "DENY": {
+      "ESCALATE": 1
+    },
+    "ESCALATE": {
+      "ESCALATE": 5
+    }
+  },
+  "latency_observations": 8,
+  "median_latency_ms": 0.4748499995912425,
+  "p95_latency_ms": null,
+  "throughput_cases_per_second": 556.9440480275223,
+  "throughput_denominator": "all attempted cases; mock throughput is harness throughput, not Jev throughput",
+  "by_perturbation_family": {
+    "adversarial_state": {
+      "cases": 1,
+      "completed": 1,
+      "correct": 0,
+      "errors": 1,
+      "escalations": 1
+    },
+    "ambiguity": {
+      "cases": 1,
+      "completed": 1,
+      "correct": 1,
+      "errors": 0,
+      "escalations": 1
+    },
+    "clean_baseline": {
+      "cases": 1,
+      "completed": 1,
+      "correct": 0,
+      "errors": 1,
+      "escalations": 1
+    },
+    "conflicting_evidence": {
+      "cases": 1,
+      "completed": 1,
+      "correct": 1,
+      "errors": 0,
+      "escalations": 1
+    },
+    "cross_view_disagreement": {
+      "cases": 1,
+      "completed": 1,
+      "correct": 1,
+      "errors": 0,
+      "escalations": 1
+    },
+    "distribution_shift": {
+      "cases": 1,
+      "completed": 1,
+      "correct": 1,
+      "errors": 0,
+      "escalations": 1
+    },
+    "irrelevant_context": {
+      "cases": 1,
+      "completed": 1,
+      "correct": 0,
+      "errors": 1,
+      "escalations": 1
+    },
+    "threshold_sensitivity": {
+      "cases": 1,
+      "completed": 1,
+      "correct": 1,
+      "errors": 0,
+      "escalations": 1
+    }
+  },
+  "experiment_id": "m2-mock-development",
+  "run_id": "m2-mock-development-20260929T092612022229Z",
+  "dataset_id": "failure-lab-synthetic-v1",
+  "dataset_split": "development",
+  "execution_mode": "mock",
+  "measurement_scope": "mock control-loop timing"
+}

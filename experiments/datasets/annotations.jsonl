@@ -1,8 +1,0 @@
-{"case_id":"dev-001","family":"clean_baseline"}
-{"case_id":"dev-002","family":"irrelevant_context"}
-{"case_id":"dev-003","family":"ambiguity"}
-{"case_id":"dev-004","family":"conflicting_evidence"}
-{"case_id":"dev-005","family":"distribution_shift"}
-{"case_id":"dev-006","family":"adversarial_state"}
-{"case_id":"dev-007","family":"cross_view_disagreement"}
-{"case_id":"dev-008","family":"threshold_sensitivity"}

@@ -7,7 +7,7 @@ follow :mod:`runner` for one case's path through control, recording, and metrics
 from .benchmark import (
     BenchmarkCase,
     CaseAnnotation,
-    FailureCategory,
+    OutcomeCategory,
     GroundTruthProvenance,
     GroundTruthSource,
     GroundTruthCertainty,
@@ -23,6 +23,6 @@ __all__ = [
     "BenchmarkCase", "CaseAnnotation", "DatasetSplit", "DatasetStore", "ExperimentArtifactStore",
     "ExecutionMode", "ExperimentConfig", "ExperimentLock", "ExperimentRunner",
     "DeterministicMockJevAdapter", "RunOutcome",
-    "FailureCategory", "GroundTruthCertainty", "GroundTruthProvenance",
-    "GroundTruthSource", "PerturbationFamily", "RunArtifactStore",
+    "OutcomeCategory", "GroundTruthCertainty", "GroundTruthProvenance",
+    "GroundTruthSource", "PerturbationFamily",
 ]
