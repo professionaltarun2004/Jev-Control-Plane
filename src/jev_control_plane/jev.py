@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from math import isfinite
 from time import perf_counter
 from typing import Any, Mapping, Protocol
@@ -21,6 +21,7 @@ class TypeSafeJevAdapter:
     client: Any | None = None
     noul_yes_threshold: float = 0.5
     model: str | None = None
+    _owns_client: bool = field(default=False, init=False, repr=False)
 
     def __post_init__(self) -> None:
         if not 0 <= self.noul_yes_threshold <= 1:
@@ -30,11 +31,7 @@ class TypeSafeJevAdapter:
         client = self.client
         owned = client is None
         if owned:
-            try:
-                from typesafe_sdk import TypeSafeClient
-            except ImportError as exc:
-                raise RuntimeError("Install the official SDK with `python -m pip install -e .` to use Jev") from exc
-            client = TypeSafeClient()
+            client = self._new_client()
         questions = {view.view_id: self._question(view) for view in request.views}
         started = perf_counter()
         try:
@@ -51,6 +48,38 @@ class TypeSafeJevAdapter:
             self._normalize(view, response, elapsed_ms)
             for view in request.views
         )
+
+    def prepare(self) -> None:
+        """Validate SDK credentials locally before the runner writes a run record.
+
+        TypeSafeClient construction validates configuration without sending a
+        request. Reusing the prepared client avoids reconstructing it per case.
+        """
+        if self.client is not None:
+            return
+        self.client = self._new_client()
+        self._owns_client = True
+
+    def close(self) -> None:
+        """Close only a client this adapter prepared itself."""
+        if self._owns_client and self.client is not None:
+            self.client.close()
+        if self._owns_client:
+            self.client = None
+            self._owns_client = False
+
+    @staticmethod
+    def _new_client() -> Any:
+        try:
+            from typesafe_sdk import TypeSafeClient
+        except ImportError as exc:
+            raise RuntimeError("Install the official SDK with `python -m pip install -e .` to use Jev") from exc
+        try:
+            return TypeSafeClient()
+        except Exception as exc:
+            raise RuntimeError(
+                "Could not initialize TypeSafe Jev. Configure a valid TYPESAFE_API_KEY before a live run."
+            ) from exc
 
     @staticmethod
     def _question(view: DecisionView) -> Any:

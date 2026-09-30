@@ -9,12 +9,13 @@ the available data model.
 from __future__ import annotations
 
 from collections import Counter, defaultdict
-from math import ceil
+from math import ceil, comb
 from statistics import median
 from typing import Any, Iterable, Mapping
 
 
-def calculate_metrics(results: Iterable[Mapping[str, Any]], elapsed_seconds: float) -> dict[str, Any]:
+def calculate_metrics(results: Iterable[Mapping[str, Any]], elapsed_seconds: float,
+                      validation_criteria: Any | None = None) -> dict[str, Any]:
     rows = tuple(results)
     completed = tuple(row for row in rows if row["status"] == "complete")
     errors = tuple(row for row in rows if row["status"] == "error")
@@ -22,6 +23,15 @@ def calculate_metrics(results: Iterable[Mapping[str, Any]], elapsed_seconds: flo
     incorrect = sum(row.get("final_action_correct") is False for row in completed)
     actions = Counter(row.get("final_action") for row in completed)
     denominator = len(completed)
+    false_allow_rows = tuple(row for row in completed if row["expected_action"] != "ALLOW")
+    false_deny_rows = tuple(row for row in completed if row["expected_action"] != "DENY")
+    resolvable_rows = tuple(row for row in completed if row["expected_action"] in ("ALLOW", "DENY"))
+    escalate_truth_rows = tuple(row for row in completed if row["expected_action"] == "ESCALATE")
+    unnecessary_escalation_rows = tuple(row for row in resolvable_rows if row.get("unnecessary_escalation") is True)
+    false_allow = sum(row.get("final_action") == "ALLOW" for row in false_allow_rows)
+    false_deny = sum(row.get("final_action") == "DENY" for row in false_deny_rows)
+    autonomous_correct = sum(row.get("final_action") == row.get("expected_action") for row in resolvable_rows)
+    correct_escalations = sum(row.get("final_action") == "ESCALATE" for row in escalate_truth_rows)
 
     agreement_counts = Counter(row.get("view_agreement_status", _legacy_agreement(row)) for row in completed)
     evidence_conditions = Counter()
@@ -43,7 +53,7 @@ def calculate_metrics(results: Iterable[Mapping[str, Any]], elapsed_seconds: flo
     for row in completed:
         confusion[row["expected_action"]][row["final_action"]] += 1
 
-    return {
+    metrics = {
         "cases_total": len(rows),
         "completed_decisions": denominator,
         "run_errors": len(errors),
@@ -52,6 +62,13 @@ def calculate_metrics(results: Iterable[Mapping[str, Any]], elapsed_seconds: flo
         "incorrect_final_actions": incorrect,
         "accuracy": correct / denominator if denominator else None,
         "error_rate": incorrect / denominator if denominator else None,
+        "final_action_error_rate_ci95": _binomial_rate(incorrect, denominator),
+        "false_allow": _binomial_rate(false_allow, len(false_allow_rows)),
+        "false_deny": _binomial_rate(false_deny, len(false_deny_rows)),
+        "unnecessary_escalation": _binomial_rate(len(unnecessary_escalation_rows), len(resolvable_rows)),
+        "escalation_rate_ci95": _binomial_rate(actions.get("ESCALATE", 0), denominator),
+        "correct_autonomous_coverage": _binomial_rate(autonomous_correct, len(resolvable_rows)),
+        "correct_escalation_rate": _binomial_rate(correct_escalations, len(escalate_truth_rows)),
         "action_counts": {action: actions.get(action, 0) for action in ("ALLOW", "DENY", "ESCALATE")},
         "action_rates": {action: actions.get(action, 0) / denominator if denominator else None
                          for action in ("ALLOW", "DENY", "ESCALATE")},
@@ -71,6 +88,71 @@ def calculate_metrics(results: Iterable[Mapping[str, Any]], elapsed_seconds: flo
         "per_view_evidence_distributions": _view_distributions(completed),
         "by_perturbation_family": family_summary,
         "matched_perturbation_pairs": _matched_pairs(rows),
+    }
+    if validation_criteria is not None:
+        metrics["pilot_sufficiency_assessment"] = _assess_pilot(metrics, completed, validation_criteria)
+    return metrics
+
+
+def _binomial_rate(successes: int, trials: int, alpha: float = 0.05) -> dict[str, Any]:
+    """Return a count/rate and exact Clopper-Pearson interval for small samples."""
+    rate = successes / trials if trials else None
+    if not trials:
+        return {"count": successes, "denominator": 0, "rate": None, "ci95": None}
+    lower = 0.0 if successes == 0 else _tail_root(successes, trials, alpha / 2)
+    upper = 1.0 if successes == trials else _cdf_root(successes, trials, alpha / 2)
+    return {"count": successes, "denominator": trials, "rate": rate, "ci95": [lower, upper]}
+
+
+def _binomial_cdf(k: int, n: int, p: float) -> float:
+    return sum(comb(n, index) * p**index * (1 - p)**(n - index) for index in range(k + 1))
+
+
+def _binomial_tail(k: int, n: int, p: float) -> float:
+    return sum(comb(n, index) * p**index * (1 - p)**(n - index) for index in range(k, n + 1))
+
+
+def _tail_root(k: int, n: int, target: float) -> float:
+    low, high = 0.0, 1.0
+    for _ in range(64):
+        middle = (low + high) / 2
+        if _binomial_tail(k, n, middle) < target:
+            low = middle
+        else:
+            high = middle
+    return (low + high) / 2
+
+
+def _cdf_root(k: int, n: int, target: float) -> float:
+    low, high = 0.0, 1.0
+    for _ in range(64):
+        middle = (low + high) / 2
+        if _binomial_cdf(k, n, middle) > target:
+            low = middle
+        else:
+            high = middle
+    return (low + high) / 2
+
+
+def _assess_pilot(metrics: Mapping[str, Any], rows: tuple[Mapping[str, Any], ...], criteria: Any) -> dict[str, Any]:
+    checks = {
+        "minimum_final_action_accuracy": metrics["accuracy"] is not None and metrics["accuracy"] >= criteria.minimum_final_action_accuracy,
+        "zero_false_allow": not criteria.require_zero_false_allow or metrics["false_allow"]["count"] == 0,
+        "zero_false_deny": not criteria.require_zero_false_deny or metrics["false_deny"]["count"] == 0,
+        "minimum_correct_autonomous_coverage": metrics["correct_autonomous_coverage"]["rate"] is not None and metrics["correct_autonomous_coverage"]["rate"] >= criteria.minimum_correct_autonomous_coverage,
+        "minimum_correct_escalation_rate": metrics["correct_escalation_rate"]["rate"] is not None and metrics["correct_escalation_rate"]["rate"] >= criteria.minimum_correct_escalation_rate,
+        "maximum_unnecessary_escalation_rate": metrics["unnecessary_escalation"]["rate"] is not None and metrics["unnecessary_escalation"]["rate"] <= criteria.maximum_unnecessary_escalation_rate,
+        "all_autonomous_actions_evidence_sufficient": all(
+            row.get("evidence_sufficient") is True
+            for row in rows if row.get("final_action") in ("ALLOW", "DENY")
+        ),
+    }
+    failed = [name for name, passed in checks.items() if not passed]
+    return {
+        "status": "pilot_criteria_met_on_validation_sample" if not failed else "pilot_criteria_not_met_on_validation_sample",
+        "checks": checks,
+        "failed_criteria": failed,
+        "population_conclusion": "inconclusive; pilot sample and paired-family dependence do not establish population reliability",
     }
 
 

@@ -122,6 +122,7 @@ class DecisionEvidence:
     unmapped_views: tuple[str, ...] = ()
     disagreeing_views: tuple[str, ...] = ()
     agreement_status: AgreementStatus = AgreementStatus.UNMAPPED
+    action_support: Mapping[str, float | None] = field(default_factory=dict)
 
     @property
     def mapped_actions(self) -> Mapping[str, ControlAction]:
@@ -134,6 +135,9 @@ class PolicyResult:
     action: ControlAction
     reason: str
     policy_version: str
+    candidate_action: ControlAction | None = None
+    evidence_sufficient: bool = False
+    sufficiency_reasons: tuple[str, ...] = ()
 
 
 @dataclass(frozen=True)

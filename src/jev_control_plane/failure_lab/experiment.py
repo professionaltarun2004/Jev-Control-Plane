@@ -27,6 +27,25 @@ class ExecutionMode(StrEnum):
 
 
 @dataclass(frozen=True)
+class ValidationCriteria:
+    """Predeclared pilot interpretation cutoffs; never trained from run outcomes."""
+
+    minimum_final_action_accuracy: float = 0.80
+    minimum_correct_autonomous_coverage: float = 0.50
+    minimum_correct_escalation_rate: float = 0.80
+    maximum_unnecessary_escalation_rate: float = 0.20
+    require_zero_false_allow: bool = True
+    require_zero_false_deny: bool = True
+
+    def __post_init__(self) -> None:
+        for field_name in ("minimum_final_action_accuracy", "minimum_correct_autonomous_coverage",
+                           "minimum_correct_escalation_rate", "maximum_unnecessary_escalation_rate"):
+            value = getattr(self, field_name)
+            if not 0 <= value <= 1:
+                raise ValueError(f"{field_name} must be between 0 and 1")
+
+
+@dataclass(frozen=True)
 class ExperimentConfig:
     experiment_id: str
     dataset_id: str
@@ -35,6 +54,9 @@ class ExperimentConfig:
     policy: PolicyConfig
     jev_model: str = "jev-latest"
     execution_mode: ExecutionMode = ExecutionMode.JEV_LIVE
+    condition_id: str | None = None
+    matrix_sha256: str | None = None
+    validation_criteria: ValidationCriteria | None = None
 
     def __post_init__(self) -> None:
         if not self.experiment_id.strip() or not self.dataset_id.strip():
@@ -48,6 +70,10 @@ class ExperimentConfig:
         ids = [view.view_id for view in self.views]
         if len(ids) != len(set(ids)):
             raise ValueError("experiment view IDs must be unique")
+        if self.condition_id is not None and not self.condition_id.strip():
+            raise ValueError("condition_id must not be empty")
+        if self.matrix_sha256 is not None and len(self.matrix_sha256) != 64:
+            raise ValueError("matrix_sha256 must be a SHA-256 hex digest")
 
     def decision_config(self) -> dict[str, Any]:
         return json_safe({
@@ -56,6 +82,9 @@ class ExperimentConfig:
             "execution_mode": self.execution_mode,
             "views": self.views,
             "policy": self.policy,
+            "condition_id": self.condition_id,
+            "matrix_sha256": self.matrix_sha256,
+            "validation_criteria": self.validation_criteria,
         })
 
     def decision_config_digest(self) -> str:
@@ -91,6 +120,76 @@ class ExperimentConfig:
             policy=PolicyConfig(**value["policy"]),
             jev_model=value.get("jev_model", "jev-latest"),
             execution_mode=ExecutionMode(value.get("execution_mode", "jev_live")),
+            condition_id=value.get("condition_id"),
+            matrix_sha256=value.get("matrix_sha256"),
+            validation_criteria=ValidationCriteria(**value["validation_criteria"]) if value.get("validation_criteria") else None,
+        )
+
+
+@dataclass(frozen=True)
+class ExperimentMatrix:
+    """One predeclared A/B condition matrix sharing cases, prompts, and policy."""
+
+    matrix_id: str
+    dataset_id: str
+    split: str
+    jev_model: str
+    execution_mode: ExecutionMode
+    policy: PolicyConfig
+    validation_criteria: ValidationCriteria
+    view_definitions: Mapping[str, DecisionView]
+    conditions: Mapping[str, tuple[str, ...]]
+    matrix_sha256: str
+
+    REQUIRED_CONDITIONS = {
+        "A1": ("noul",), "A2": ("choice",), "A3": ("score",),
+        "B1": ("choice",), "B2": ("choice", "noul"), "B3": ("choice", "noul", "score"),
+    }
+
+    @classmethod
+    def from_dict(cls, value: Mapping[str, Any]) -> "ExperimentMatrix":
+        required = {"matrix_id", "dataset_id", "split", "jev_model", "execution_mode", "policy",
+                    "validation_criteria", "view_definitions", "conditions"}
+        if set(value) != required:
+            raise ValueError(f"matrix fields must be exactly {sorted(required)}")
+        views = {}
+        for item in value["view_definitions"]:
+            view = DecisionView(
+                item["view_id"], Primitive(item["primitive"]), item["instructions"],
+                item.get("criteria"),
+                {key: ControlAction(action) for key, action in item.get("action_map", {}).items()},
+            )
+            if view.view_id in views:
+                raise ValueError(f"duplicate view definition: {view.view_id}")
+            views[view.view_id] = view
+        conditions = {str(key): tuple(ids) for key, ids in value["conditions"].items()}
+        if conditions != cls.REQUIRED_CONDITIONS:
+            raise ValueError("matrix must contain the predeclared A1-A3 and B1-B3 conditions")
+        for condition_id, view_ids in conditions.items():
+            if not set(view_ids).issubset(views):
+                raise ValueError(f"condition {condition_id} references an undefined view")
+        expected_primitives = {"noul": Primitive.NOUL, "choice": Primitive.CHOICE, "score": Primitive.SCORE}
+        for condition_id, view_ids in conditions.items():
+            for view_id in view_ids:
+                if views[view_id].primitive is not expected_primitives[view_id]:
+                    raise ValueError(f"condition {condition_id} uses an invalid primitive for {view_id}")
+        canonical = json.dumps(value, sort_keys=True, separators=(",", ":"), allow_nan=False)
+        return cls(
+            str(value["matrix_id"]), str(value["dataset_id"]), str(value["split"]),
+            str(value["jev_model"]), ExecutionMode(value["execution_mode"]),
+            PolicyConfig(**value["policy"]), ValidationCriteria(**value["validation_criteria"]),
+            views, conditions, hashlib.sha256(canonical.encode()).hexdigest(),
+        )
+
+    def config_for(self, condition_id: str) -> ExperimentConfig:
+        if condition_id not in self.conditions:
+            raise ValueError(f"unknown experiment condition: {condition_id}")
+        return ExperimentConfig(
+            experiment_id=f"{self.matrix_id}-{condition_id}", dataset_id=self.dataset_id,
+            split=self.split, views=tuple(self.view_definitions[key] for key in self.conditions[condition_id]),
+            policy=self.policy, jev_model=self.jev_model, execution_mode=self.execution_mode,
+            condition_id=condition_id, matrix_sha256=self.matrix_sha256,
+            validation_criteria=self.validation_criteria,
         )
 
 

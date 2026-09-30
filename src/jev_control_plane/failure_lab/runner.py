@@ -151,6 +151,14 @@ class ExperimentRunner:
                 consensus = next(iter(hints.values()))
             expected = case.expected_action.value
             final_action = record.policy["action"]
+            candidate_action = record.policy.get("candidate_action")
+            evidence_sufficient = record.policy.get("evidence_sufficient") is True
+            unnecessary_escalation = (
+                final_action == ControlAction.ESCALATE.value
+                and expected in (ControlAction.ALLOW.value, ControlAction.DENY.value)
+                and candidate_action == expected
+                and evidence_sufficient
+            )
             jev_error = None if consensus is None else consensus != expected
             correct = final_action == expected
             policy_error = None if consensus is None else (not correct and jev_error is False)
@@ -161,6 +169,12 @@ class ExperimentRunner:
                 outcome_categories.append(OutcomeCategory.JEV_DECISION_ERROR.value)
             if policy_error is True:
                 outcome_categories.append(OutcomeCategory.POLICY_ACTION_ERROR.value)
+            if final_action == ControlAction.ALLOW.value and expected != ControlAction.ALLOW.value:
+                outcome_categories.append(OutcomeCategory.FALSE_ALLOW.value)
+            if final_action == ControlAction.DENY.value and expected != ControlAction.DENY.value:
+                outcome_categories.append(OutcomeCategory.FALSE_DENY.value)
+            if unnecessary_escalation:
+                outcome_categories.append(OutcomeCategory.UNNECESSARY_ESCALATION.value)
             evidence_conditions = ExperimentRunner._evidence_conditions(record, config)
             return {
                 "run_id": run_id,
@@ -179,6 +193,12 @@ class ExperimentRunner:
                 "perturbation_family": annotation.family.value if annotation else None,
                 "perturbation_description": annotation.description if annotation else None,
                 "base_case_id": annotation.base_case_id if annotation else None,
+                "case_family_id": annotation.case_family_id if annotation else None,
+                "decision_relevant_facts": annotation.decision_relevant_facts if annotation else (),
+                "changed_facts": annotation.changed_facts if annotation else (),
+                "unchanged_facts": annotation.unchanged_facts if annotation else (),
+                "expected_action_unchanged": annotation.expected_action_unchanged if annotation else None,
+                "annotation_notes": annotation.notes if annotation else None,
                 "jev_view_agreement": evidence["agreement"],
                 "view_agreement_status": evidence["agreement_status"],
                 "view_disagreement": bool(evidence["disagreeing_views"]),
@@ -191,6 +211,10 @@ class ExperimentRunner:
                 "final_action_correct": correct,
                 "final_action_error": not correct,
                 "policy_action_error": policy_error,
+                "policy_candidate_action": candidate_action,
+                "evidence_sufficient": evidence_sufficient,
+                "sufficiency_reasons": record.policy.get("sufficiency_reasons", ()),
+                "unnecessary_escalation": unnecessary_escalation,
                 "runner_error": False,
                 "policy_triggered_escalation": final_action == ControlAction.ESCALATE.value,
                 "outcome_categories": outcome_categories,
@@ -216,6 +240,12 @@ class ExperimentRunner:
                 "perturbation_family": annotation.family.value if annotation else None,
                 "perturbation_description": annotation.description if annotation else None,
                 "base_case_id": annotation.base_case_id if annotation else None,
+                "case_family_id": annotation.case_family_id if annotation else None,
+                "decision_relevant_facts": annotation.decision_relevant_facts if annotation else (),
+                "changed_facts": annotation.changed_facts if annotation else (),
+                "unchanged_facts": annotation.unchanged_facts if annotation else (),
+                "expected_action_unchanged": annotation.expected_action_unchanged if annotation else None,
+                "annotation_notes": annotation.notes if annotation else None,
                 "jev_view_agreement": None,
                 "view_agreement_status": None,
                 "view_disagreement": None,
@@ -228,6 +258,10 @@ class ExperimentRunner:
                 "final_action_correct": None,
                 "final_action_error": None,
                 "policy_action_error": None,
+                "policy_candidate_action": None,
+                "evidence_sufficient": False,
+                "sufficiency_reasons": [],
+                "unnecessary_escalation": False,
                 "runner_error": True,
                 "policy_triggered_escalation": False,
                 "outcome_categories": [OutcomeCategory.RUNNER_ERROR.value],

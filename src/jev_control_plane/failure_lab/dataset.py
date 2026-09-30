@@ -77,8 +77,19 @@ class DatasetStore:
             base = cases.get(annotation.base_case_id)
             if base is None:
                 raise ValueError("base_case_id must identify a case in the same split")
-            if cases[annotation.case_id].expected_action is not base.expected_action:
+            existing_annotations = self._read_annotations(split)
+            base_annotation = existing_annotations.get(annotation.base_case_id)
+            if base_annotation is None or base_annotation.family is not PerturbationFamily.CLEAN_BASELINE:
+                raise ValueError("matched perturbation base must have a clean_baseline annotation")
+            if (annotation.case_family_id is not None and
+                    annotation.case_family_id != base_annotation.case_family_id):
+                raise ValueError("matched cases must share one case_family_id")
+            unchanged = annotation.expected_action_unchanged
+            same_action = cases[annotation.case_id].expected_action is base.expected_action
+            if unchanged is True and not same_action:
                 raise ValueError("matched perturbations must preserve the base expected action")
+            if unchanged is False and same_action:
+                raise ValueError("a declared decision-changing perturbation must change the expected action")
         path = self._annotation_path(split)
         if annotation.case_id in self._read_annotations(split):
             raise ValueError(f"duplicate annotation for case: {annotation.case_id}")
@@ -115,9 +126,42 @@ class DatasetStore:
                 raise ValueError("matched perturbation base must exist and be annotated in the same split")
             if annotations[annotation.base_case_id].family is not PerturbationFamily.CLEAN_BASELINE:
                 raise ValueError("matched perturbation base must be annotated clean_baseline")
-            if cases[annotation.case_id].expected_action is not base.expected_action:
+            base_annotation = annotations[annotation.base_case_id]
+            if annotation.case_family_id is not None and annotation.case_family_id != base_annotation.case_family_id:
+                raise ValueError("matched cases must share one case_family_id")
+            same_action = cases[annotation.case_id].expected_action is base.expected_action
+            if annotation.expected_action_unchanged is True and not same_action:
                 raise ValueError("matched perturbations must preserve the base expected action")
+            if annotation.expected_action_unchanged is False and same_action:
+                raise ValueError("a declared decision-changing perturbation must change the expected action")
         return selected
+
+    def validate_validation_dataset(self, minimum_families: int = 10, maximum_families: int = 20) -> dict[str, int]:
+        """Validate M3 family/review metadata before a Validation condition runs."""
+        cases = self.load_split(DatasetSplit.VALIDATION)
+        if not cases:
+            raise ValueError("Validation dataset is empty")
+        annotations = self.annotations_for((case.case_id for case in cases), DatasetSplit.VALIDATION)
+        missing = set(case.case_id for case in cases) - set(annotations)
+        if missing:
+            raise ValueError(f"Validation cases require review annotations: {sorted(missing)}")
+        family_ids: set[str] = set()
+        for annotation in annotations.values():
+            if not annotation.case_family_id:
+                raise ValueError(f"Validation annotation lacks case_family_id: {annotation.case_id}")
+            if not annotation.decision_relevant_facts:
+                raise ValueError(f"Validation annotation lacks decision_relevant_facts: {annotation.case_id}")
+            if not annotation.notes.strip():
+                raise ValueError(f"Validation annotation lacks review notes: {annotation.case_id}")
+            if annotation.base_case_id is not None:
+                if annotation.expected_action_unchanged is None:
+                    raise ValueError(f"matched Validation annotation must declare truth relationship: {annotation.case_id}")
+                if not annotation.changed_facts or not annotation.unchanged_facts:
+                    raise ValueError(f"matched Validation annotation must describe changed and unchanged facts: {annotation.case_id}")
+            family_ids.add(annotation.case_family_id)
+        if not minimum_families <= len(family_ids) <= maximum_families:
+            raise ValueError(f"Validation requires {minimum_families}–{maximum_families} underlying case families; found {len(family_ids)}")
+        return {"case_rows": len(cases), "case_families": len(family_ids), "matched_variants": sum(a.base_case_id is not None for a in annotations.values())}
 
     def split_digest(self, split: str | DatasetSplit, *, permit: HoldoutReadPermit | None = None,
                      dataset_id: str | None = None) -> str:
