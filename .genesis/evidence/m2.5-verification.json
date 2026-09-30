@@ -5,16 +5,16 @@
   "verification": {
     "unittest": {
       "command": ".venv\\Scripts\\python.exe -m unittest discover -s tests -v",
-      "result": "30 passed"
+      "result": "31 passed"
     },
     "pytest": {
       "command": "python -m pytest -q -rs",
-      "result": "29 passed, 1 skipped",
-      "skip_reason": "Official SDK is not installed in the system Python used by pytest; installed-SDK adapter tests passed in the project virtual environment unittest run.",
+      "result": "30 passed, 1 skipped",
+      "skip_reason": "official SDK is not installed in this Python environment",
       "warning": "Pytest could not create its cache directory due to filesystem access; test run itself passed."
     },
     "compileall": {
-      "command": ".venv\\Scripts\\python.exe -m compileall src tests",
+      "command": "python -m compileall src tests",
       "result": "PASS"
     },
     "git_diff_check": {
@@ -22,7 +22,7 @@
       "result": "PASS"
     },
     "json_jsonl": {
-      "result": "22 files parsed successfully",
+      "result": "25 files parsed successfully",
       "scope": [
         "experiments",
         ".genesis"
@@ -30,7 +30,7 @@
     },
     "unittest_system_python": {
       "command": "python -m unittest discover -s tests -v",
-      "result": "29 passed, 1 skipped",
+      "result": "30 passed, 1 skipped",
       "skip_reason": "official SDK is not installed in this Python environment"
     },
     "compileall_system_python": {
@@ -69,15 +69,16 @@
     }
   },
   "not_run": [
-    "live Jev evaluation",
-    "Validation experiment",
-    "LOCK creation",
-    "Holdout evaluation"
+    "live Jev API evaluation",
+    "live Validation experiment",
+    "persisted project LOCK",
+    "real Holdout evaluation"
   ],
   "limits": [
     "Development dataset has eight developer-authored synthetic cases and is a plumbing fixture.",
     "Validation and Holdout are not populated.",
     "No calibration, real-world validity, primitive comparison, threshold sensitivity, cost, or trajectory result is established.",
-    "The local lock is an accidental-drift gate, not tamper-proof storage or a security boundary."
+    "The local lock is an accidental-drift gate, not tamper-proof storage or a security boundary.",
+    "Unit tests exercise temporary Validation/LOCK/Holdout paths with a deterministic mock substituted for TypeSafe; they verify plumbing only and are not experimental results."
   ]
 }
