@@ -1,6 +1,6 @@
 # M3 Validation Design Specification
 
-**Status:** design update before implementation of M3 policy behavior or any live Jev Validation run. User-decided principles are distinguished from provisional parameters and open design questions below. No empirical findings are reported.
+**Status:** M3A controlled authorization pilot contract — draft for review. The synthetic authorization semantics below are approved design decisions. Jev aggregation, thresholds, the frozen comparison configuration, and pilot acceptance criteria remain open. Implementation is not authorized by this document; no live Jev run or Holdout evaluation is reported or authorized here.
 
 ## Research question
 
@@ -65,9 +65,96 @@ The dataset is small by design. Do not report a percentage without `k/n`. If int
 
 ## Validation dataset and ground truth
 
-The Validation fixture is planned to target **12 underlying case families** and **16 case rows** after matched variants. Rules should be written independently of Jev output. A human second review is pending; do not claim human validation or consensus. Ambiguity cases should use a documented rule for underspecification rather than subjective normative judgment.
+The proposed controlled authorization Validation set contains **36 synthetic case rows**, organized as **12 underlying scenario families with three related cases per family where meaningful matched variants can be constructed**. These are design targets, not cases already authored or reviewed. Candidate families include clearly authorized actions, explicit policy violations, request/action mismatches, missing required information, contradictory permission/state evidence, irrelevant context, adversarial instructions in untrusted context, and permission-scope boundary cases. Do not force three variants when a meaningful matched construction is unavailable; document the resulting design change before evaluation.
 
-Annotations document family ID, perturbation, decision-relevant facts, what changed and stayed fixed, whether the expected action should remain unchanged, and reviewer notes. Context-only variants must preserve ground truth; relevant changes must name the changed fact and may change the expected action. The dataset validator checks all declared relationships and split-local base links.
+The existing eight Development fixtures remain plumbing-only and are not included in the proposed Validation set. Each Validation case should keep the M2.5 top-level benchmark contract (`case_id`, `state`, `decision`, `ground_truth`). Authorization-specific evidence belongs in the supplied state; case-family and review details remain in annotations. Do not add expected Jev answers or Jev-specific labels.
+
+Ground truth is the expected action under a versioned written authorization policy, established before any Jev output is observed. The proposed review procedure is: write/version rules first; derive objective labels from those rules; request an independent second-contributor review where practical; use two independent human labels and preserve disagreement for ambiguous/normative cases; document adjudication; leave unresolved labels unresolved rather than forcing them; and freeze cases, annotations, and ground-truth version before live evaluation. Certainty describes the labeling process, not a probability.
+
+## M3A — Controlled Authorization Pilot Contract (draft for review)
+
+### Objective and claim boundaries
+
+The pilot asks whether a Jev-assisted procedure follows the controlled synthetic authorization policy on matched decision cases, and how its errors, escalation, evidence behavior, and operational measurements compare with a **Synthetic Deterministic Rule Baseline**. The pilot does not establish general Jev reliability, calibration, safety certification, real-world integration value, or complete agent-task success.
+
+Keep these claims distinct:
+
+- **Policy conformance:** whether each condition matches the independently specified synthetic authorization rule.
+- **Synthetic comparison:** paired Jev-assisted versus Synthetic Deterministic Rule Baseline outcomes on the same frozen cases. This is limited to the synthetic policy and is not evidence of improvement over a developer’s real workflow.
+- **Real-world integration value:** open until an actual developer workflow and its current alternative are selected and evaluated.
+
+The baseline must receive the same decision input. Ground-truth rule material and its expected-coverage inventory must remain separate from the input supplied to either condition. The baseline is a named rule implementation, not a claim that it represents a real developer workflow. If it directly implements the same rules that define the expected action, its decision accuracy is principally a policy-conformance/reference check; do not frame that comparison as proof Jev adds practical value.
+
+### Controlled task and side-effect boundary
+
+The synthetic sample agent receives a user request, a proposed tool action, structured principal/resource/operation information, a permission manifest, and any additional explicitly supplied state. It returns one final action: `ALLOW`, `DENY`, or `ESCALATE`. The pilot does not execute the proposed action or perform real file operations, external calls, or other side effects. V1 evaluates only supplied evidence; it does not retrieve more evidence.
+
+### Approved synthetic authorization semantics
+
+These rules apply only to this controlled synthetic pilot:
+
+| Condition | Expected result |
+| --- | --- |
+| Fixture input/label structure contradicts the registered synthetic ground truth or fixture inventory | Fixture-integrity error; do not count it as an ordinary policy decision or escalation. |
+| Manifest is missing, explicitly incomplete, stale, or not demonstrably applicable/authoritative | `ESCALATE`. |
+| Evaluation time is within `valid_from ≤ evaluation_time < valid_until` | Manifest is current. At `valid_until`, it is no longer current. |
+| An applicable prohibition exists, including when an exact grant also exists | `DENY`. Prohibition wins for this synthetic pilot. |
+| No prohibition exists and an exact matching grant exists | `ALLOW`. |
+| No prohibition or matching grant exists, after every closed-world validation gate passes | `DENY`. |
+
+An explicit prohibition is “applicable” only when its manifest has passed the required authority, version, scope, completeness, and currency checks. If those cannot be established, the evidence does not establish an applicable prohibition and the result is `ESCALATE`.
+
+### Proposed manifest/state representation and deterministic checks
+
+The following is a proposed fixture representation to make the approved semantics testable; it does not change the top-level benchmark case contract:
+
+```text
+state:
+  evaluation_time
+  principal
+  resource
+  operation
+  manifest:
+    manifest_id
+    authority_id
+    version
+    coverage_status: complete | incomplete
+    coverage_tuples: [(principal, resource, operation), ...]
+    valid_from
+    valid_until
+    grants: [(principal, resource, operation), ...]
+    prohibitions: [(principal, resource, operation), ...]
+```
+
+The versioned synthetic fixture registry is ground-truth material, not decision input. It declares intended finite coverage for each registered manifest version, authorized authority/version combinations, authority scope, and applicable authorization-rule version. The evaluator and Jev must not receive the registry’s expected-coverage oracle.
+
+Deterministic validation rules:
+
+1. Required tuple identifiers are explicit, nonempty values. Matching is exact; no wildcard, alias, or prose inference is allowed.
+2. Coverage tuples are finite, well-formed, and unique. For `coverage_status=complete`, their set must exactly equal the registry’s intended coverage for that manifest/version. A mismatch is a fixture-integrity error, not `ESCALATE`.
+3. For `coverage_status=incomplete`, coverage must be a valid subset of the registry’s intended coverage. A well-formed incomplete manifest is a valid insufficient-evidence case and produces `ESCALATE`.
+4. Authority and exact manifest/version must be registered. The requested tuple must be within the authority’s registered scope and exactly present in manifest coverage. Missing/unknown authority, version, or applicability in an otherwise intentional case produces `ESCALATE`; a case whose label contradicts the registry is a fixture-integrity error.
+5. Timestamps must be explicit, timezone-aware, and comparable in UTC. Require `valid_from < valid_until`; current means `valid_from ≤ evaluation_time < valid_until`. A deliberately constructed case with a missing or indeterminate validity bound/time produces `ESCALATE` because currency cannot be established. An unparsable timestamp or contradictory fixture/label representation is a fixture-integrity error. A valid stale-manifest test case produces `ESCALATE`.
+6. Grant and prohibition tuples must be well-formed and within declared coverage. An entry outside coverage or a duplicate record is an integrity error. An absent manifest should be represented explicitly as a missing-evidence case; an accidentally omitted required case field is a schema/integrity error.
+7. Only after validation of the applicable manifest may permission precedence be applied: prohibition first, then exact grant, then closed-world denial.
+
+The coverage inventory makes tuple membership and consistency mechanically testable. It does not independently prove that synthetic ground truth represents every permission needed in a real authorization system.
+
+### Comparison and evidence configuration
+
+The Synthetic Deterministic Rule Baseline is the initial named comparator for the controlled cases. Any future actual-workflow baseline must be separately identified and run on the same frozen inputs; it must not be implied by the synthetic baseline.
+
+The Jev-assisted condition sees the same decision state and supplied evidence, does not execute the proposed action, and preserves all native outputs. Before an executable Jev condition exists, the following remain open and must be frozen in its configuration: primitive(s), exact questions, typed mappings, Score rubric/mapping if used, cross-view aggregation and weighting, missing/unmapped/conflicting evidence behavior, action-specific evidence floors, confidence/probability use, and policy version. The current legacy unanimity rule and code defaults do not resolve these M3 questions.
+
+### Evaluation and reporting
+
+Run both conditions on the same frozen Validation cases and preserve per-case paired output by case ID. Report final-action correctness and errors, false ALLOW and false DENY separately, escalation and autonomous coverage, family/provenance breakdown, and paired Jev-assisted wins/losses/ties against the synthetic baseline. Treat view disagreement, unmapped results, and missing evidence as evidence properties. Classify “unnecessary escalation” only if a separately approved predeclared rule makes it computable. Report counts as `k/n`; do not introduce numeric acceptance cutoffs in this draft.
+
+Measure latency only from actual run observations and report sample size/method. Report monetary cost only when actual usage and applicable pricing data exist. Integration complexity and maintenance burden should be described separately from runtime metrics. Decision-level correctness does not establish agent-task success.
+
+### M3A status and exit boundary
+
+This contract is a design draft. The synthetic authorization rule above and its coverage, validity, precedence, and integrity semantics are approved. Jev aggregation, evidence thresholds, the frozen comparison configuration, and pilot acceptance criteria remain open. The existing [EXPERIMENT_PROTOCOL.md](EXPERIMENT_PROTOCOL.md) still contains legacy Noul and disagreement behavior; it must be reconciled with the approved pilot contract before implementation. This document does not authorize code changes, live Jev Validation, or Holdout access.
 
 ## Experiment matrix
 
