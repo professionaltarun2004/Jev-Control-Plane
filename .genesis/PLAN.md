@@ -72,7 +72,7 @@ Live Jev performance, threshold sweeps, calibration, cost accounting, realistic 
 
 ## T-3A — Reconcile the M3A research contract
 
-**Status:** open. PR #1 is a draft; its documentation changes have not been merged. M3A primitive/action mappings, multi-view aggregation, evidence requirements, and pilot acceptance criteria remain unresolved.
+**Status:** open. PR #1 was merged in commit ed99056b7665d2311f1568733259eaf10b11f420. The M3A research decisions remain open. M3A primitive/action mappings, multi-view aggregation, evidence requirements, and pilot acceptance criteria remain unresolved.
 
 **Boundary:** review and approve research semantics explicitly. Do not infer choices from legacy runtime defaults. No live Jev or Holdout run is part of contract reconciliation.
 
@@ -86,6 +86,6 @@ Live Jev performance, threshold sweeps, calibration, cost accounting, realistic 
 
 **Executable gates:** fresh-virtual-environment installation from the current checkout; `python -m unittest discover -s tests -v`; `python examples/run_mock_experiment.py`; inspect generated manifest, summary, and one result row; `git diff --check`.
 
-**Status:** in progress. Tests and the mock artifact gate passed in the existing project environment; fresh-environment installation is blocked here by the sandbox's Python bootstrap/PyPI access and remains unverified.
+**Status:** complete. Fresh-clone installation, all 31 unit tests, offline mock execution, artifact inspection, and diff checks passed. Mock results remain plumbing-only.
 
-**Evidence:** `.genesis/evidence/m3b-verification.json` records the environment and exact gate outcomes. A fresh environment in an existing checkout is not described as a fresh-clone test.
+**Evidence:** `.genesis/evidence/m3b-verification.json`. Live Jev, Validation, Holdout, and real workflow evaluation remain unrun.

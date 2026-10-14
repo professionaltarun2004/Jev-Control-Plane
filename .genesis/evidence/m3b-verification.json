@@ -1,70 +1,71 @@
 {
   "task_id": "T-3B",
-  "status": "partial",
-  "scope": "Mock demo and clean-clone documentation only; no policy, benchmark, ground-truth, or research-criterion changes.",
-  "source_revision": "2ab35d8f4e64f926f4dbe787022c901e11422cf5",
+  "status": "complete",
+  "scope": "Fresh-clone installation, offline mock execution, artifact inspection, and tests only; no policy, benchmark, ground-truth, or research-criterion changes.",
+  "source_revision": "ed99056b7665d2311f1568733259eaf10b11f420",
   "environment": {
     "os": "Windows",
     "python": "3.12.5",
-    "test_environment": "Pre-existing repository .venv with typesafe-sdk 0.7.2",
-    "fresh_clone_tested": false,
+    "test_environment": "Fresh clone with a fresh virtual environment; typesafe-sdk 0.7.4",
+    "fresh_clone_tested": true,
     "jev_api_key_present_during_mock": false,
-    "note": "A fresh virtual-environment install was attempted, but setup could not complete because ensurepip failed in this sandbox and PyPI name resolution was unavailable. Test temporary directories required TEMP/TMP to be redirected into the workspace."
+    "note": "Fresh-clone installation and offline verification passed. No environment variables matching JEV or TYPESAFE were present during the mock check; this does not establish the absence of every possible credential alias."
   },
   "verification": {
     "unittest": {
       "command": ".venv\\Scripts\\python.exe -m unittest discover -s tests -v",
       "result": "31 passed",
-      "notes": "TEMP and TMP were directed to a workspace-local temporary directory to avoid sandbox temp-path permissions."
+      "duration_seconds": 2.396
     },
     "mock_example": {
-      "command": ".venv\\Scripts\\python.exe examples\\run_mock_experiment.py",
+      "command": "python examples/run_mock_experiment.py",
       "result": "PASS",
       "execution_mode": "mock",
       "dataset_split": "development",
-      "artifact_directory": "experiments/runs/m2-mock-development-20261014T053509125636Z",
+      "artifact_directory": "experiments/runs/m2-mock-development-20261014T063531393288Z",
       "cases": 8,
       "correct": 5,
       "incorrect": 3,
       "escalated": 8,
       "runner_errors": 0,
-      "median_mock_latency_ms": 0.24859999984983006,
+      "median_mock_latency_ms": 0.2213,
       "p95_latency_ms": null,
-      "interpretation": "Deterministic mock plumbing output only. These values are not Jev performance or research findings."
+      "interpretation": "Synthetic deterministic mock plumbing output only; not Jev performance or research findings. All eight cases escalated, so no autonomous ALLOW or DENY action was demonstrated."
     },
     "artifact_validation": {
       "result": "PASS",
       "checks": [
-        "manifest and summary parse as JSON",
-        "results parse as JSONL",
-        "manifest and summary identify mock Development execution",
-        "eight result rows are present and complete"
+        "manifest and summary parsed as JSON",
+        "results parsed as JSONL",
+        "eight result rows parsed",
+        "mock Development execution identified",
+        "one complete decision record inspected"
       ]
     },
     "git_diff_check": "PASS"
   },
   "install_attempts": [
     {
-      "command": "python -m venv .m3b-venv",
-      "result": "FAIL",
-      "reason": "The bundled ensurepip subprocess returned nonzero."
+      "command": "Create a fresh virtual environment in a clean clone",
+      "result": "PASS",
+      "reason": "Fresh environment created successfully."
     },
     {
-      "command": "python -m pip install -e .",
-      "result": "BLOCKED",
-      "reason": "The sandbox could not resolve pypi.org to obtain the declared build requirement setuptools>=68."
+      "command": "Install project dependencies with python -m pip install -e .",
+      "result": "PASS",
+      "reason": "Fresh-clone editable installation completed successfully."
     }
   ],
   "not_run": [
     "live Jev requests",
     "Validation experiment",
     "Holdout evaluation",
-    "fresh-clone verification"
+    "real agent workflow evaluation"
   ],
   "remote_actions": {
     "github_modified": false,
     "commit_created": false,
     "push_performed": false
   },
-  "limitation": "The offline mock and test suite passed in the pre-existing environment, but a clean installation from the documented command remains unverified in this network-restricted sandbox."
+  "limitation": "The clean-clone contributor workflow is verified. Mock results are not evidence of live Jev effectiveness, autonomous decision quality, or real workflow performance."
 }
