@@ -2,6 +2,40 @@
 
 **Protocol status:** Version 1, design specification. No live Jev findings are reported here. The eight included cases remain Development plumbing fixtures, not Validation or Holdout evidence.
 
+## M3A pilot-specific precedence and reconciliation
+
+**Authority:** `M3_VALIDATION_SPEC.md` controls the synthetic M3A authorization pilot. This protocol remains the general M2.5 research-methodology reference. If a legacy rule below conflicts with the approved M3A contract or an explicitly unresolved M3A question, the M3A contract takes precedence for that pilot. This precedence does not rewrite the legacy V1 implementation or establish universal authorization semantics.
+
+### General M2.5 rules retained for M3A
+
+- The primary unit is one underlying decision; views address the same decision and supplied state.
+- Ground truth is established independently of Jev outputs. Do not add expected Jev answers or Jev-specific labels to benchmark cases.
+- Preserve typed and raw Jev outputs; keep probabilities and confidence distinct; do not claim calibration without supporting evaluation.
+- Keep evidence properties (agreement, disagreement, unmapped outputs, confidence/probability observations) distinct from ground-truth outcome errors.
+- Use matched cases where the intervention permits, preserve provenance and annotation sidecars, report denominators and run errors, and describe the limitations of synthetic and family-dependent observations.
+- Preserve reproducibility, privacy, and split discipline. Development fixtures remain plumbing-only.
+- The synthetic deterministic rule baseline is a policy-conformance/reference comparator when it implements the same rule used for ground truth. It does not demonstrate practical Jev value or improvement over a real developer workflow. Real-workflow value requires a separately identified existing workflow and comparator evaluated on the same frozen inputs.
+
+### Legacy rules not adopted as M3A defaults
+
+The following sections retain descriptions of existing V1 behavior or possible configuration patterns. They do **not** select M3A behavior:
+
+- Noul `true → ALLOW` / `false → DENY` mapping.
+- Automatic escalation for every view disagreement or unmapped view.
+- Legacy confidence floors, Noul support floors, or automatic escalation due to missing Choice/Score confidence.
+- Any specific Score rubric or Score-to-action boundaries.
+- Any particular primitive set, view combination, aggregation/weighting rule, or pilot acceptance cutoff.
+
+For M3A, these remain unresolved unless explicitly selected, documented, versioned, and frozen before observing live Jev Validation outcomes. No M3A condition is runnable while a mapping, aggregation, threshold, or escalation behavior it requires remains open. A candidate experiment-matrix row is not authorization to run it.
+
+### M3A dataset and fixture gates
+
+- The 36-row / 12-family plan is a design target, not an already-authored dataset. Before evaluation, freeze case IDs, family membership, and intended family sizes. If meaningful variants cannot be authored, report the shortfall or revise the plan before evaluation; do not replace cases after observing Jev outputs.
+- Represent intended insufficiency explicitly in structurally valid cases (for example, a missing manifest, a well-formed incomplete manifest, or a valid but stale manifest). These cases may have expected action `ESCALATE`.
+- Malformed fixture structure, inconsistent coverage inventory, or labels that contradict registered synthetic ground truth are fixture-integrity errors and must be rejected before decision evaluation. Do not count them as ordinary `ESCALATE` outcomes.
+- The registered finite coverage inventory is a synthetic fixture oracle used by the validator, not decision input. Jev and the Synthetic Deterministic Rule Baseline receive the same case state but not the expected-coverage oracle.
+- M3A is a Validation-only pilot. This document's general LOCK/Holdout procedure does not authorize Holdout access or evaluation for M3A; any later Holdout activity requires separate explicit authorization and a valid frozen protocol/configuration.
+
 ## 1. Research question
 
 > Under what conditions does Jev-based control provide sufficient evidence to make an agent decision autonomously, and under what conditions does it become unreliable or need escalation?
@@ -48,9 +82,9 @@ All conditions use the same underlying case IDs within a comparison layer and th
 
 | Condition | Views for the same decision | Configuration rule |
 | --- | --- | --- |
-| A1 | Noul | `true → ALLOW`, `false → DENY`; low Noul support or unavailable evidence escalates. |
-| A2 | Choice | Choice options map explicitly to `ALLOW`, `DENY`, or `ESCALATE`. |
-| A3 | Score | Ordered rubric is specified low-to-high risk; policy thresholds map low risk to ALLOW, high risk to DENY, and the interval between to ESCALATE. |
+| A1 | Noul | Legacy V1 mapping: `true → ALLOW`, `false → DENY`; low Noul support or unavailable evidence escalates. **Not an M3A default:** the M3A Noul-to-action mapping and support/escalation behavior remain open until explicitly frozen. |
+| A2 | Choice | Choice options require an explicit typed mapping to `ALLOW`, `DENY`, or `ESCALATE`. The mapping is configuration, not ground truth; the exact M3A mapping remains open until frozen. |
+| A3 | Score | A possible configuration uses an ordered rubric and explicit thresholds. This describes a mapping pattern, not an M3A-selected rubric or action mapping; both remain open until frozen. |
 
 Report each primitive separately: answer/score distributions, probabilities, confidence where provided, final-action correctness, escalation, unmapped output, errors, and latency. Do not rank primitives with a single composite score. If Score has no valid configured thresholds for a view, it is unmapped and the policy fails closed to ESCALATE.
 
@@ -104,7 +138,7 @@ An annotation remains outside the benchmark case and contains `case_id`, `family
 
 ## 5. Evidence aggregation and outcome taxonomy
 
-Aggregation retains every typed Jev result and its raw response. It exposes mapped actions, unmapped views, disagreeing views, and a summary status. Disagreement and unmapped evidence may coexist. The policy escalates if any required view is unmapped or mapped views disagree; this is a deterministic V1 policy rule, not a claim that the rule is optimal.
+Aggregation retains every typed Jev result and its raw response. It exposes mapped actions, unmapped views, disagreeing views, and a summary status. Disagreement and unmapped evidence may coexist. **Legacy V1 behavior** escalates if any required view is unmapped or mapped views disagree. That behavior is not an M3A default: whether disagreement is resolvable, when unmapped evidence requires escalation, and how required views are defined remain open until the M3A configuration is explicitly frozen.
 
 Keep evidence conditions orthogonal to outcomes:
 
@@ -129,7 +163,7 @@ These outcomes can co-occur. Step, trajectory, and task failures are not inferre
 
 Policy is deterministic, configurable, and separate from the Jev request. Thresholds are experimental parameters, not established defaults. Version the entire policy configuration and include it in the configuration digest.
 
-For Score views, declare in `PolicyConfig` per-view numeric boundaries over the rubric's numeric output. The rubric criteria must be ordered low-to-high risk and scores must lie in `[0, number_of_criteria - 1]`:
+For a configured Score view, a possible mapping pattern is to declare in `PolicyConfig` per-view numeric boundaries over the rubric's numeric output. If this pattern is selected, the rubric criteria must be ordered low-to-high risk and scores must lie in `[0, number_of_criteria - 1]`. **For M3A, neither this rubric nor this mapping is selected by this general protocol text.** A selected mapping must be documented and frozen before live Validation:
 
 ```text
 score <= allow_at_or_below  → ALLOW
@@ -139,7 +173,7 @@ between the two thresholds → ESCALATE
 
 Require `allow_at_or_below < deny_at_or_above`, validate both against the rubric range, and record them with the policy version. These values must be selected on Validation and frozen before Holdout. Score probabilities remain available as evidence; the expected numeric score is not itself a probability or a calibrated risk estimate.
 
-The initial deterministic policy may also escalate on view disagreement/unmapped evidence, low reported confidence, missing Choice/Score confidence, or insufficient Noul answer support. Noul's reported yes probability remains distinct from confidence. Choice/Score probability vectors are preserved and analyzed descriptively; no calibration claim follows from this protocol.
+Legacy V1 policy configurations may escalate on view disagreement/unmapped evidence, low reported confidence, missing Choice/Score confidence, or insufficient Noul answer support. These are examples of existing/configurable behavior, not M3A defaults. M3A must explicitly choose which signals are required and how they affect each action before a run. Noul's reported yes probability remains distinct from confidence. Choice/Score probability vectors are preserved and analyzed descriptively; no calibration claim follows from this protocol.
 
 ## 7. Splits, LOCK, and Holdout
 
