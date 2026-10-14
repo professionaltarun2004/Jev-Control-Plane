@@ -1,0 +1,46 @@
+name: Python tests
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.11", "3.12"]
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: pip
+      - name: Install project and dependencies
+        run: python -m pip install -e .
+      - name: Run unit tests
+        run: python -m unittest discover -s tests -v
+      - name: Run offline mock and validate artifacts
+        run: |
+          python examples/run_mock_experiment.py > mock-run-output.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          output = json.loads(Path("mock-run-output.json").read_text(encoding="utf-8"))
+          run_dir = Path(output["run_dir"])
+          manifest = json.loads((run_dir / "manifest.json").read_text(encoding="utf-8"))
+          summary = json.loads((run_dir / "summary.json").read_text(encoding="utf-8"))
+          rows = [json.loads(line) for line in (run_dir / "results.jsonl").read_text(encoding="utf-8").splitlines()]
+          assert manifest["execution_mode"] == "mock"
+          assert summary["execution_mode"] == "mock"
+          assert len(rows) == summary["cases_total"]
+          assert all(row.get("execution_mode") == "mock" for row in rows)
+          print(f"Validated {len(rows)} mock Development result rows in {run_dir}")
+          PY
