@@ -18,11 +18,13 @@ flowchart LR
 
 The control plane owns the decision boundary, not the agent's execution lifecycle. Framework adapters and non-Jev decision providers are future work, not V1 dependencies.
 
-## Quick start: offline mock path
+## Quick start
 
-Python 3.11 or newer is required. The mock example needs no Jev credentials or inference request. Installing dependencies requires access to the configured Python package index; after installation, the example uses a deterministic local adapter instead of contacting Jev.
+Python 3.11 or newer is required. Choose the offline path to try the harness without credentials, or the live path to send a Jev request with your own TypeSafe API key. Both paths require installation from the configured Python package index; only the live path sends inference requests.
 
-Clone the repository, then create and activate a virtual environment.
+### Path A: offline mock (no API key)
+
+Clone the repository and create a virtual environment.
 
 **Windows PowerShell**
 
@@ -42,14 +44,17 @@ python3 -m venv .venv
 source .venv/bin/activate
 ```
 
-Install the project and its declared dependencies, then run the offline example:
+Install the project, run the test suite, then execute the deterministic offline example:
 
 ```sh
 python -m pip install -e .
+python -m unittest discover -s tests -v
 python examples/run_mock_experiment.py
 ```
 
-The example prints the run ID and artifact directory. Each run is written under `experiments/runs/<run-id>/`:
+Installing dependencies requires access to the configured package index. The mock execution itself uses a deterministic local adapter and sends no live Jev request.
+
+The example prints a run ID and artifact directory. Each run is written under `experiments/runs/<run-id>/`:
 
 | File | What to inspect |
 | --- | --- |
@@ -59,25 +64,33 @@ The example prints the run ID and artifact directory. Each run is written under 
 
 Use the printed directory to inspect the files. For example, `python -m json.tool experiments/runs/<run-id>/summary.json` formats the summary; open `results.jsonl` as text to inspect the individual records. A new run directory is retained as an experiment artifact and may appear as an untracked path in `git status`.
 
-These outputs are labeled `mock`. They verify the local dataset-to-runner-to-policy-to-artifact path only; they are not Jev performance, agent task outcomes, or research findings. The example runs only the Development split.
+These outputs are labeled `mock`. The current eight-case synthetic Development run has 5 matching final actions, 3 mismatches, 8 escalations, and 0 runner errors. These are mock plumbing results, not Jev performance, live effectiveness, agent-task outcomes, or research findings. The example uses only the Development split. The tests use temporary split/lock fixtures; they do not evaluate repository Holdout data or make live Jev requests. A failing test prints its traceback and exits nonzero.
 
-## Tests
+### Path B: live Jev example (your own API key)
 
-Run the standard-library test suite from the repository root:
+Follow the [official TypeSafe quick start](https://docs.typesafe.ai/introduction/quickstart.md) and [Python SDK guide](https://docs.typesafe.ai/sdk/python.md) to obtain access and create your own API key. Keep the key private. The SDK reads `TYPESAFE_API_KEY` from the process environment; this repository does not automatically load `.env` files. The root [`.env.example`](.env.example) is a placeholder template only. Copying it to `.env` does not configure the SDK, and `.env` must never be committed.
 
-```sh
-python -m unittest discover -s tests -v
-```
+Set the key in the terminal where you will run the example.
 
-The command prints each test and its traceback on failure and exits nonzero if a test fails. The tests include temporary split/lock fixtures; they do not evaluate the repository's Holdout dataset or make live Jev requests.
+**Windows PowerShell**
 
-## Live Jev example
-
-The separate control-loop example sends a real request and requires a valid `TYPESAFE_API_KEY`. Do not use it to verify the offline mock setup. Live Jev performance has not been measured.
-
-```sh
+```powershell
+$env:TYPESAFE_API_KEY = "your_typesafe_api_key_here"
 python examples/decision_flow.py
+Remove-Item Env:TYPESAFE_API_KEY
 ```
+
+**macOS / Linux**
+
+```sh
+export TYPESAFE_API_KEY="your_typesafe_api_key_here"
+python examples/decision_flow.py
+unset TYPESAFE_API_KEY
+```
+
+Use the placeholder only as a pattern; replace it locally with the key from your TypeSafe account. Do not paste keys into chat, source files, or commits. The example sends a real request to Jev and may incur usage or charges under your provider account and terms; check the provider for current details.
+
+If the SDK is missing, the adapter reports that the official SDK must be installed. If client initialization fails (including missing or locally invalid key configuration), the adapter raises a `RuntimeError` asking you to configure a valid `TYPESAFE_API_KEY`. Errors returned during a live request are surfaced by the SDK; the example does not convert them into a custom message. Live Jev performance has not been measured.
 
 ## Failure Lab
 
@@ -105,4 +118,4 @@ The Holdout runner requires a write-once configuration lock created from a compl
 - [Project specification](SPEC.md)
 - [Milestone tasks and evidence trail](.genesis/PLAN.md)
 
-The Noul API exposes a yes probability without a separate confidence field. The adapter preserves that distinction; policy thresholds are experimental defaults and must be selected on Validation, then frozen before Holdout.
+The Noul API exposes a yes probability without a separate confidence field. The adapter preserves that distinction. Current runtime policy defaults are legacy experimental behavior, not approved M3A criteria; the primary Jev condition, evidence mappings and aggregation, thresholds, and acceptance criteria remain open in [M3_VALIDATION_SPEC.md](M3_VALIDATION_SPEC.md).
