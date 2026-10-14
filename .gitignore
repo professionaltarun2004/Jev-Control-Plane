@@ -1,7 +1,29 @@
 __pycache__/
 *.py[cod]
 .pytest_cache/
+.coverage
+htmlcov/
+
+# Virtual environments
 .venv/
+venv/
+env/
+
+# Secrets and local environment files
 .env
+.env.*
+!.env.example
+
+# Local development and generated output
+.vscode/
+.idea/
 decision-logs/
 *.log
+.tmp-tests/
+
+# Local experiment runs are ignored by default. Existing curated runs remain
+# tracked; deliberately curated new evidence can be force-added for review.
+experiments/runs/*/
+
+# Internal maintainer notes; keep a local copy, not a repository copy.
+AI review about the repo.txt
