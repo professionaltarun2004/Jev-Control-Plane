@@ -86,7 +86,7 @@ All conditions use the same underlying case IDs within a comparison layer and th
 | A2 | Choice | Choice options require an explicit typed mapping to `ALLOW`, `DENY`, or `ESCALATE`. The mapping is configuration, not ground truth; the exact M3A mapping remains open until frozen. |
 | A3 | Score | A possible configuration uses an ordered rubric and explicit thresholds. This describes a mapping pattern, not an M3A-selected rubric or action mapping; both remain open until frozen. |
 
-Report each primitive separately: answer/score distributions, probabilities, confidence where provided, final-action correctness, escalation, unmapped output, errors, and latency. Do not rank primitives with a single composite score. If Score has no valid configured thresholds for a view, it is unmapped and the policy fails closed to ESCALATE.
+Report each primitive separately: answer/score distributions, probabilities, confidence where provided, final-action correctness, escalation, unmapped output, errors, and latency. Do not rank primitives with a single composite score. **Legacy V1 behavior only:** If Score has no valid configured thresholds for a view, it is treated as unmapped and the legacy policy fails closed to ESCALATE. This is not an M3A default; M3A’s Score mapping and handling of unmapped Score evidence remain open.
 
 ### Layer B — Multiple-view ablation
 
