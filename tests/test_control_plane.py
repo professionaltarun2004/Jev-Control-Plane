@@ -131,7 +131,7 @@ class AggregationAndPolicyTests(unittest.TestCase):
         result_policy = DeterministicPolicy().decide(evidence)
         self.assertIsNone(evidence.results[0].confidence)
         self.assertEqual(result_policy.action, ControlAction.ESCALATE)
-        self.assertIn("probability", result_policy.reason)
+        self.assertIn("support", result_policy.reason)
 
     def test_missing_noul_probability_and_missing_choice_confidence_escalate(self):
         req = request()

@@ -69,3 +69,23 @@ Live Jev performance, threshold sweeps, calibration, cost accounting, realistic 
 **Status:** complete; offline tests, syntax, artifact parsing, mock plumbing run, and diff checks passed. Live Jev and Holdout remain unrun.
 
 **Evidence:** `.genesis/evidence/m2.5-verification.json`.
+
+## T-3A — Reconcile the M3A research contract
+
+**Status:** open. PR #1 is a draft; its documentation changes have not been merged. M3A primitive/action mappings, multi-view aggregation, evidence requirements, and pilot acceptance criteria remain unresolved.
+
+**Boundary:** review and approve research semantics explicitly. Do not infer choices from legacy runtime defaults. No live Jev or Holdout run is part of contract reconciliation.
+
+## T-3B — Mock demo and clean-clone experience
+
+**Outcome:** a new contributor can create a Python environment, install the project from the documented dependency declaration, run the existing offline mock example without Jev credentials, locate its machine-readable artifacts, and run the existing tests.
+
+**Boundaries:** use only the existing Development fixtures and mock adapter. Do not change policy behavior, mappings, thresholds, aggregation, ground truth, experiment criteria, or benchmark scope. No live Jev, Holdout, new workflow benchmark, or paired baseline.
+
+**Risk:** low (setup and contributor workflow; no external action is performed).
+
+**Executable gates:** fresh-virtual-environment installation from the current checkout; `python -m unittest discover -s tests -v`; `python examples/run_mock_experiment.py`; inspect generated manifest, summary, and one result row; `git diff --check`.
+
+**Status:** in progress. Tests and the mock artifact gate passed in the existing project environment; fresh-environment installation is blocked here by the sandbox's Python bootstrap/PyPI access and remains unverified.
+
+**Evidence:** `.genesis/evidence/m3b-verification.json` records the environment and exact gate outcomes. A fresh environment in an existing checkout is not described as a fresh-clone test.

@@ -18,27 +18,66 @@ flowchart LR
 
 The control plane owns the decision boundary, not the agent's execution lifecycle. Framework adapters and non-Jev decision providers are future work, not V1 dependencies.
 
-## Quick start
+## Quick start: offline mock path
 
-Python 3.11+ is required. Install the project and official TypeSafe SDK:
+Python 3.11 or newer is required. The mock example needs no Jev credentials or inference request. Installing dependencies requires access to the configured Python package index; after installation, the example uses a deterministic local adapter instead of contacting Jev.
+
+Clone the repository, then create and activate a virtual environment.
+
+**Windows PowerShell**
 
 ```powershell
-python -m pip install -e .
+git clone https://github.com/professionaltarun2004/Jev-Control-Plane.git
+cd Jev-Control-Plane
+py -3 -m venv .venv
+.venv\Scripts\Activate.ps1
 ```
 
-Run the deterministic, offline Failure Lab plumbing example:
+**macOS / Linux**
 
-```powershell
+```sh
+git clone https://github.com/professionaltarun2004/Jev-Control-Plane.git
+cd Jev-Control-Plane
+python3 -m venv .venv
+source .venv/bin/activate
+```
+
+Install the project and its declared dependencies, then run the offline example:
+
+```sh
+python -m pip install -e .
 python examples/run_mock_experiment.py
 ```
 
-This writes a uniquely named run under `experiments/runs/`. Outputs are labeled `mock`; they are not Jev performance. Run the live control-loop example after setting `TYPESAFE_API_KEY`:
+The example prints the run ID and artifact directory. Each run is written under `experiments/runs/<run-id>/`:
 
-```powershell
-python examples/decision_flow.py
+| File | What to inspect |
+| --- | --- |
+| `manifest.json` | Run mode, input/configuration digests, and software metadata |
+| `summary.json` | Decision counts and supported aggregate metrics |
+| `results.jsonl` | One record per attempted Development case, including raw control-plane evidence |
+
+Use the printed directory to inspect the files. For example, `python -m json.tool experiments/runs/<run-id>/summary.json` formats the summary; open `results.jsonl` as text to inspect the individual records. A new run directory is retained as an experiment artifact and may appear as an untracked path in `git status`.
+
+These outputs are labeled `mock`. They verify the local dataset-to-runner-to-policy-to-artifact path only; they are not Jev performance, agent task outcomes, or research findings. The example runs only the Development split.
+
+## Tests
+
+Run the standard-library test suite from the repository root:
+
+```sh
+python -m unittest discover -s tests -v
 ```
 
-Run tests with `python -m unittest discover -s tests -v`.
+The command prints each test and its traceback on failure and exits nonzero if a test fails. The tests include temporary split/lock fixtures; they do not evaluate the repository's Holdout dataset or make live Jev requests.
+
+## Live Jev example
+
+The separate control-loop example sends a real request and requires a valid `TYPESAFE_API_KEY`. Do not use it to verify the offline mock setup. Live Jev performance has not been measured.
+
+```sh
+python examples/decision_flow.py
+```
 
 ## Failure Lab
 

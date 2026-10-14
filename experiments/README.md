@@ -12,14 +12,21 @@ The authoritative research methods are in [EXPERIMENT_PROTOCOL.md](../EXPERIMENT
 
 ## Run a mock plumbing experiment
 
-From the repository root:
+The clone, virtual-environment, installation, and test steps are in the [README quick start](../README.md#quick-start-offline-mock-path). From the activated environment and repository root, run:
 
-```powershell
-python -m pip install -e .
+```sh
 python examples/run_mock_experiment.py
 ```
 
-Each run gets a new directory under `experiments/runs/` with a manifest, decision-level `results.jsonl`, and summary. Failed cases remain in the output. Mock latency and throughput describe the local harness only.
+No Jev API key is required for this command. It uses the deterministic mock adapter and reads only the Development dataset. The command prints a unique run ID and directory under `experiments/runs/`. Inspect `manifest.json` for the selected mode and reproducibility metadata, `summary.json` for aggregate plumbing metrics, and `results.jsonl` for per-case records and raw control-plane evidence. Preserve failed case rows; do not treat mock answers, latency, or throughput as Jev observations.
+
+Run the offline test suite with:
+
+```sh
+python -m unittest discover -s tests -v
+```
+
+The tests use temporary fixtures for split and lock behavior. They do not access the repository's Holdout data or issue Jev API calls.
 
 ## Data layout
 

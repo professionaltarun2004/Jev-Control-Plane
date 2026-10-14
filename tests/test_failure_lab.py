@@ -209,13 +209,19 @@ class DatasetAndLockTests(unittest.TestCase):
             datasets.add_case(sample_case("base"), DatasetSplit.DEVELOPMENT)
             datasets.add_case(sample_case("perturbed"), DatasetSplit.DEVELOPMENT)
             datasets.add_annotation(CaseAnnotation("base", PerturbationFamily.CLEAN_BASELINE, "clean"), DatasetSplit.DEVELOPMENT)
-            datasets.add_annotation(CaseAnnotation("perturbed", PerturbationFamily.IRRELEVANT_CONTEXT, "extra unrelated note", "base"), DatasetSplit.DEVELOPMENT)
+            datasets.add_annotation(CaseAnnotation(
+                "perturbed", PerturbationFamily.IRRELEVANT_CONTEXT,
+                "extra unrelated note", "base", expected_action_unchanged=True,
+            ), DatasetSplit.DEVELOPMENT)
             self.assertEqual(datasets.annotations_for(["perturbed"], DatasetSplit.DEVELOPMENT)["perturbed"].base_case_id, "base")
 
             altered = sample_case("different-truth", ControlAction.DENY)
             datasets.add_case(altered, DatasetSplit.DEVELOPMENT)
             with self.assertRaisesRegex(ValueError, "preserve the base expected action"):
-                datasets.add_annotation(CaseAnnotation("different-truth", PerturbationFamily.IRRELEVANT_CONTEXT, "invalid changed truth", "base"), DatasetSplit.DEVELOPMENT)
+                datasets.add_annotation(CaseAnnotation(
+                    "different-truth", PerturbationFamily.IRRELEVANT_CONTEXT,
+                    "invalid changed truth", "base", expected_action_unchanged=True,
+                ), DatasetSplit.DEVELOPMENT)
 
     def test_locked_holdout_is_one_shot_and_second_run_is_rejected(self):
         with tempfile.TemporaryDirectory() as temp:

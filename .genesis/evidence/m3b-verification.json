@@ -1,0 +1,70 @@
+{
+  "task_id": "T-3B",
+  "status": "partial",
+  "scope": "Mock demo and clean-clone documentation only; no policy, benchmark, ground-truth, or research-criterion changes.",
+  "source_revision": "2ab35d8f4e64f926f4dbe787022c901e11422cf5",
+  "environment": {
+    "os": "Windows",
+    "python": "3.12.5",
+    "test_environment": "Pre-existing repository .venv with typesafe-sdk 0.7.2",
+    "fresh_clone_tested": false,
+    "jev_api_key_present_during_mock": false,
+    "note": "A fresh virtual-environment install was attempted, but setup could not complete because ensurepip failed in this sandbox and PyPI name resolution was unavailable. Test temporary directories required TEMP/TMP to be redirected into the workspace."
+  },
+  "verification": {
+    "unittest": {
+      "command": ".venv\\Scripts\\python.exe -m unittest discover -s tests -v",
+      "result": "31 passed",
+      "notes": "TEMP and TMP were directed to a workspace-local temporary directory to avoid sandbox temp-path permissions."
+    },
+    "mock_example": {
+      "command": ".venv\\Scripts\\python.exe examples\\run_mock_experiment.py",
+      "result": "PASS",
+      "execution_mode": "mock",
+      "dataset_split": "development",
+      "artifact_directory": "experiments/runs/m2-mock-development-20261014T053509125636Z",
+      "cases": 8,
+      "correct": 5,
+      "incorrect": 3,
+      "escalated": 8,
+      "runner_errors": 0,
+      "median_mock_latency_ms": 0.24859999984983006,
+      "p95_latency_ms": null,
+      "interpretation": "Deterministic mock plumbing output only. These values are not Jev performance or research findings."
+    },
+    "artifact_validation": {
+      "result": "PASS",
+      "checks": [
+        "manifest and summary parse as JSON",
+        "results parse as JSONL",
+        "manifest and summary identify mock Development execution",
+        "eight result rows are present and complete"
+      ]
+    },
+    "git_diff_check": "PASS"
+  },
+  "install_attempts": [
+    {
+      "command": "python -m venv .m3b-venv",
+      "result": "FAIL",
+      "reason": "The bundled ensurepip subprocess returned nonzero."
+    },
+    {
+      "command": "python -m pip install -e .",
+      "result": "BLOCKED",
+      "reason": "The sandbox could not resolve pypi.org to obtain the declared build requirement setuptools>=68."
+    }
+  ],
+  "not_run": [
+    "live Jev requests",
+    "Validation experiment",
+    "Holdout evaluation",
+    "fresh-clone verification"
+  ],
+  "remote_actions": {
+    "github_modified": false,
+    "commit_created": false,
+    "push_performed": false
+  },
+  "limitation": "The offline mock and test suite passed in the pre-existing environment, but a clean installation from the documented command remains unverified in this network-restricted sandbox."
+}
