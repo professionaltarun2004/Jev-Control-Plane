@@ -35,9 +35,9 @@ py -3 -m venv .venv
 .venv\Scripts\Activate.ps1
 ```
 
-**macOS / Linux**
+**macOS / Linux (Bash or Zsh)**
 
-```sh
+```bash
 git clone https://github.com/professionaltarun2004/Jev-Control-Plane.git
 cd Jev-Control-Plane
 python3 -m venv .venv
@@ -75,22 +75,33 @@ Set the key in the terminal where you will run the example.
 **Windows PowerShell**
 
 ```powershell
-$env:TYPESAFE_API_KEY = "your_typesafe_api_key_here"
+$secureKey = Read-Host "TypeSafe API key" -AsSecureString
+$env:TYPESAFE_API_KEY = [System.Net.NetworkCredential]::new("", $secureKey).Password
 python examples/decision_flow.py
 Remove-Item Env:TYPESAFE_API_KEY
+$secureKey.Dispose()
 ```
 
 **macOS / Linux**
 
 ```sh
-export TYPESAFE_API_KEY="your_typesafe_api_key_here"
+IFS= read -r -s -p "TypeSafe API key: " TYPESAFE_API_KEY
+printf '\n'
+export TYPESAFE_API_KEY
 python examples/decision_flow.py
 unset TYPESAFE_API_KEY
 ```
 
-Use the placeholder only as a pattern; replace it locally with the key from your TypeSafe account. Do not paste keys into chat, source files, or commits. The example sends a real request to Jev and may incur usage or charges under your provider account and terms; check the provider for current details.
+The key is read without echoing it to the terminal or putting it in the command history. Do not paste keys into chat, source files, or commits. The example sends a real request to Jev and may incur usage or charges under your provider account and terms; check the provider for current details.
 
 If the SDK is missing, the adapter reports that the official SDK must be installed. If client initialization fails (including missing or locally invalid key configuration), the adapter raises a `RuntimeError` asking you to configure a valid `TYPESAFE_API_KEY`. Errors returned during a live request are surfaced by the SDK; the example does not convert them into a custom message. Live Jev performance has not been measured.
+
+### Troubleshooting
+
+- If PowerShell blocks virtual-environment activation, run the environment's interpreter directly: `.venv\Scripts\python.exe -m pip install -e .`, then use `.venv\Scripts\python.exe` in place of `python` for the test and example commands. This avoids changing the machine's execution policy.
+- If `py` is unavailable, install Python 3.11 or newer and use `python -m venv .venv` in PowerShell.
+- If the SDK import fails on the live path, activate the project environment and rerun `python -m pip install -e .`.
+- If the live adapter reports that it could not initialize TypeSafe Jev, confirm the key was entered in the same terminal session and retry with a valid key. Authentication or request errors returned after initialization are reported by the SDK.
 
 ## Failure Lab
 
@@ -118,4 +129,10 @@ The Holdout runner requires a write-once configuration lock created from a compl
 - [Project specification](SPEC.md)
 - [Milestone tasks and evidence trail](.genesis/PLAN.md)
 
+To contribute, start with [CONTRIBUTING.md](CONTRIBUTING.md). Report vulnerabilities using [SECURITY.md](SECURITY.md), not a public issue. The project follows its [Code of Conduct](CODE_OF_CONDUCT.md).
+
 The Noul API exposes a yes probability without a separate confidence field. The adapter preserves that distinction. Current runtime policy defaults are legacy experimental behavior, not approved M3A criteria; the primary Jev condition, evidence mappings and aggregation, thresholds, and acceptance criteria remain open in [M3_VALIDATION_SPEC.md](M3_VALIDATION_SPEC.md).
+
+## License status
+
+No license has been selected or included. Until the maintainer chooses one, the repository does not grant general permission to reuse or redistribute its contents. See [GitHub's licensing guidance](https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/licensing-a-repository) for common options; do not assume a permissive license applies.
