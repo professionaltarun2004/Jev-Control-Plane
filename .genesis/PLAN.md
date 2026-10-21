@@ -89,3 +89,33 @@ Live Jev performance, threshold sweeps, calibration, cost accounting, realistic 
 **Status:** complete. Fresh-clone installation, all 31 unit tests, offline mock execution, artifact inspection, and diff checks passed. Mock results remain plumbing-only.
 
 **Evidence:** `.genesis/evidence/m3b-verification.json`. Live Jev, Validation, Holdout, and real workflow evaluation remain unrun.
+
+## T-4A — Mock-only paired comparison
+
+**Outcome:** run the Jev-shaped deterministic mock control path and deterministic judge mock independently over the same label-free Development decisions; preserve native outputs, normalized actions, execution statuses, evaluator-only outcomes, and paired descriptive artifacts.
+
+**Boundaries:** mock plumbing only. Policy-level equivalence remains disabled because M3A action mappings, thresholds, aggregation, and escalation semantics remain open. No live providers, Validation, or Holdout access.
+
+**Risk:** medium (comparison artifacts can be misread as model-performance evidence).
+
+**Executable gate:** `python -m unittest discover -s tests -v` plus `python examples/run_mock_comparison.py` and inspection of the versioned paired artifacts.
+
+**Status:** implementation is present in commit `52d3afc15d24bd106c08f02bc6c33d18647838eb`; local paired mock execution and artifact inspection were reproduced during T-4A.1. Results are synthetic Development plumbing only.
+
+## T-4A.1 — Comparison CI, artifact validation, and checkpoint
+
+**Outcome:** validate paired run artifacts in CI against the actual Development case IDs, label-isolation boundary, complete two-condition attempt matrix, statuses/actions, evaluator-owned outcomes, and recomputed paired metrics.
+
+**Depends on:** T-4A. The task does not depend on resolving T-3A because policy-level comparison is disabled and no research configuration is selected.
+
+**Boundaries:** verification infrastructure only. CI success is not comparative research evidence. Do not run live Jev/LLM, Validation, or Holdout.
+
+**Risk:** medium (artifact validation must not misstate action outcomes or conceal provider failures).
+
+**Executable gates:** `python -m unittest discover -s tests -v`; `python -m compileall -q src tests examples scripts`; both mock examples; paired artifact validator; `git diff --check`.
+
+**Status:** implementation commit `e291c6a87e60d6c099d8f8c3ac2cff450aade253` is present on `master` and is an ancestor of `origin/master` at `d71104c1198ebec2e102424bdc6e1b9843b4f63d`. Local gates were reproduced; GitHub Actions passed on the descendant commit for Python 3.11 and 3.12. See `.genesis/evidence/m4a1-verification.json` for the evidence source and limits.
+
+## Next research dependency
+
+T-3A remains **open**. M3A aggregation, action mappings, evidence requirements, thresholds, escalation criteria, and acceptance criteria must be explicitly resolved before any live Validation design is executable. M4A.1 does not authorize live provider calls, Validation, or Holdout.

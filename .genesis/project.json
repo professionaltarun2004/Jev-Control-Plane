@@ -1,10 +1,10 @@
 {
   "project": "Jev Control Plane",
   "workflow": "new-product",
-  "phase": "m3b-mock-demo-and-clean-clone-experience",
-  "objective": "Make the existing offline mock path straightforward for a new contributor to install, run, inspect, and test without implying Jev research findings.",
+  "phase": "m4a1-paired-comparison-ci-and-artifact-validation",
+  "objective": "Verify the mock-only paired-comparison plumbing and CI artifacts without treating infrastructure checks as comparative research evidence.",
   "specification": "SPEC.md",
-  "active_task": "T-3B",
+  "active_task": "T-3A",
   "tasks": [
     {"id": "T-1", "status": "complete", "outcome": "Typed domain, official Jev adapter, transparent evidence, deterministic policy, structured record, tests, and example form one understandable decision loop.", "risk": "medium", "requirements": ["FR-1", "FR-2", "FR-3", "FR-4", "FR-5", "FR-6", "NFR-1", "NFR-2", "NFR-3", "NFR-4", "AC-1", "AC-2", "AC-3", "AC-4", "AC-5"], "gate": "python -m unittest discover -s tests -v", "evidence": ".genesis/evidence/m1-unit-tests.json"},
     {"id": "T-2A", "status": "complete", "outcome": "Minimal benchmark cases with ground-truth provenance and split isolation; Holdout is gated by a frozen Validation configuration.", "risk": "medium", "requirements": ["M2-FR-1", "M2-FR-2", "M2-FR-3", "M2-FR-4", "M2-AC-1", "M2-AC-2", "M2-AC-3"], "gate": "python -m unittest discover -s tests -v", "evidence": ".genesis/evidence/m2-tests.json"},
@@ -12,7 +12,9 @@
     {"id": "T-2C", "status": "complete", "outcome": "Research and contributor documentation with evidence-backed mock output, limitations, and future work separated.", "risk": "low", "requirements": ["M2-FR-9", "M2-NFR-1", "M2-NFR-2", "M2-NFR-3", "M2-NFR-4", "M2-AC-8", "M2-AC-9"], "gate": "Inspect generated experiment artifacts and documentation", "evidence": ".genesis/evidence/m2-mock-run.json"},
     {"id": "T-2.5", "status": "complete", "outcome": "Authoritative executable protocol, strengthened local lock/split plumbing, evidence/outcome distinction, and verified documentation; live Jev and Holdout remain unrun.", "risk": "high", "requirements": ["M2.5-FR-1", "M2.5-FR-2", "M2.5-FR-3", "M2.5-FR-4", "M2.5-FR-5", "M2.5-FR-6", "M2.5-FR-7", "M2.5-AC-1", "M2.5-AC-2", "M2.5-AC-3", "M2.5-AC-4", "M2.5-AC-5"], "gate": "python -m unittest discover -s tests -v; python -m compileall src tests; git diff --check; validate JSON/JSONL artifacts", "evidence": ".genesis/evidence/m2.5-verification.json"},
     {"id": "T-3A", "status": "open", "outcome": "PR #1 was merged; M3A experimental semantics remain open for explicit review. No legacy policy behavior is implicitly adopted.", "risk": "high", "requirements": [], "gate": "Design review and explicit decision record; no Jev experiment", "evidence": null},
-    {"id": "T-3B", "status": "complete", "outcome": "Fresh-clone installation, offline mock execution, artifact inspection, and all 31 tests verified. No Jev research claim is made.", "risk": "low", "requirements": [], "gate": "Fresh virtual environment install; unittest; offline mock example; inspect artifacts; git diff --check", "evidence": ".genesis/evidence/m3b-verification.json"}
+    {"id": "T-3B", "status": "complete", "outcome": "Fresh-clone installation, offline mock execution, artifact inspection, and all 31 tests verified. No Jev research claim is made.", "risk": "low", "requirements": [], "gate": "Fresh virtual environment install; unittest; offline mock example; inspect artifacts; git diff --check", "evidence": ".genesis/evidence/m3b-verification.json"},
+    {"id": "T-4A", "status": "complete", "outcome": "Mock-only paired comparison runs both deterministic conditions independently on Development cases; policy-level equivalence remains disabled while M3A decisions are open.", "risk": "medium", "requirements": [], "gate": "Unittest; run paired mock; inspect versioned paired artifacts", "evidence": ".genesis/evidence/m4a1-verification.json"},
+    {"id": "T-4A.1", "status": "complete", "outcome": "Paired comparison CI and artifact validation are present; local gates reproduced and remote Actions success independently confirmed on a descendant commit.", "risk": "medium", "requirements": [], "gate": "Unittest; compileall; both mock paths; paired artifact validator; diff check; verify Actions run", "evidence": ".genesis/evidence/m4a1-verification.json"}
   ],
   "experiment_lifecycle": ["development", "validation", "LOCK", "holdout"],
   "genesis_runtime_dependency": false

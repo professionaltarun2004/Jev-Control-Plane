@@ -1,0 +1,103 @@
+{
+  "task_id": "T-4A.1",
+  "milestone": "M4A.1",
+  "status": "complete",
+  "scope": "Mock-only paired-comparison CI, artifact validation, and reproducibility evidence. No research evaluation.",
+  "implementation": {
+    "commit_sha": "e291c6a87e60d6c099d8f8c3ac2cff450aade253",
+    "commit_message": "commit",
+    "branch": "master",
+    "remote_head_sha": "d71104c1198ebec2e102424bdc6e1b9843b4f63d",
+    "implementation_commit_is_ancestor_of_remote_head": true,
+    "m4a_foundation_commit_sha": "52d3afc15d24bd106c08f02bc6c33d18647838eb",
+    "files": [
+      ".github/workflows/tests.yml",
+      "scripts/validate_comparison_artifacts.py",
+      "src/jev_control_plane/failure_lab/comparison.py",
+      "src/jev_control_plane/failure_lab/metrics.py",
+      "tests/test_comparison.py",
+      "experiments/README.md"
+    ]
+  },
+  "local_verification": {
+    "status": "passed_and_reproduced",
+    "revision": "d71104c1198ebec2e102424bdc6e1b9843b4f63d",
+    "timestamp_utc": "2026-10-21T20:14:09Z",
+    "commands": {
+      "unittest": {
+        "command": "python -m unittest discover -s tests -v",
+        "result": "47 passed, 1 skipped"
+      },
+      "compileall": {
+        "command": "python -m compileall -q src tests examples scripts",
+        "result": "passed"
+      },
+      "existing_mock": {
+        "command": "python examples/run_mock_experiment.py",
+        "result": "passed; artifacts parsed",
+        "cases_or_rows": 8,
+        "execution_mode": "mock",
+        "split": "development"
+      },
+      "paired_mock": {
+        "command": "python examples/run_mock_comparison.py",
+        "validator": "python scripts/validate_comparison_artifacts.py RUN_OUTPUT.json",
+        "result": "passed; manifest, summary, attempts, and pairs parsed and reconciled",
+        "run_id": "m4-mock-paired-development-4b3d3105aa5f",
+        "cases": 8,
+        "attempts": 16,
+        "pairs": 8,
+        "interpretation": "Synthetic Development plumbing only; not Jev or LLM behavior."
+      },
+      "git_diff_check": {
+        "command": "git diff --check",
+        "result": "passed on the clean checkout before Genesis evidence edits"
+      }
+    }
+  },
+  "remote_ci": {
+    "status": "confirmed_success_on_descendant_commit",
+    "queried_implementation_commit_sha": "e291c6a87e60d6c099d8f8c3ac2cff450aade253",
+    "direct_runs_for_implementation_commit": 0,
+    "successful_run_commit_sha": "d71104c1198ebec2e102424bdc6e1b9843b4f63d",
+    "successful_run_id": 39667937271,
+    "run_url": "https://github.com/professionaltarun2004/Jev-Control-Plane/actions/runs/39667937271",
+    "event": "push",
+    "conclusion": "success",
+    "matrix_jobs": {
+      "python_3_11": "success",
+      "python_3_12": "success"
+    },
+    "relevant_steps": {
+      "unit_tests": "success",
+      "existing_mock_artifact_check": "success",
+      "paired_comparison_artifact_validation": "success"
+    },
+    "note": "No run was listed for e291c6a itself. The successful run is on d71104c, which contains e291c6a as an ancestor and includes the paired-comparison workflow and validator."
+  },
+  "genesis_status": {
+    "T-4A": "complete; mock paired implementation and local artifact execution verified",
+    "T-4A.1": "complete; local checks reproduced and remote CI independently confirmed on descendant commit",
+    "T-3A": "open; M3A semantics remain unresolved and block live Validation configuration"
+  },
+  "research_status": {
+    "live_jev": "not run",
+    "live_llm": "not run",
+    "validation": "not run",
+    "holdout": "not accessed",
+    "policy_level_comparison": "disabled",
+    "research_readiness_upgrade": false
+  },
+  "limitations": [
+    "The eight Development cases are developer-authored synthetic plumbing fixtures.",
+    "The deterministic judge mock is not an LLM, and the Jev-shaped adapter is not Jev behavior.",
+    "Paired mock counts do not establish comparative decision quality, model performance, calibration, real-workflow value, or generalization.",
+    "Passing CI verifies tests and artifact/pairing/isolation plumbing only.",
+    "M3A action mappings, aggregation, evidence thresholds, escalation semantics, and acceptance criteria remain open."
+  ],
+  "remote_actions": {
+    "pushed": false,
+    "remote_modified_by_this_verification": false,
+    "commit_created_for_genesis_update": false
+  }
+}
