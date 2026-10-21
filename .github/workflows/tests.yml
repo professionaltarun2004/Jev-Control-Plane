@@ -44,3 +44,7 @@ jobs:
           assert all(row.get("execution_mode") == "mock" for row in rows)
           print(f"Validated {len(rows)} mock Development result rows in {run_dir}")
           PY
+      - name: Run paired comparison plumbing and validate artifacts
+        run: |
+          python examples/run_mock_comparison.py > comparison-run-output.json
+          python scripts/validate_comparison_artifacts.py comparison-run-output.json

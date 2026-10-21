@@ -11,6 +11,7 @@ from unittest.mock import patch
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
+sys.path.insert(0, str(ROOT / "scripts"))
 
 from jev_control_plane import AgentState, ControlAction, DecisionView, PolicyConfig, Primitive  # noqa: E402
 from jev_control_plane.failure_lab.comparison import (  # noqa: E402
@@ -28,6 +29,7 @@ from jev_control_plane.failure_lab.dataset import DatasetSplit, DatasetStore  # 
 from jev_control_plane.failure_lab.experiment import ExperimentConfig  # noqa: E402
 from jev_control_plane.failure_lab.metrics import calculate_paired_metrics  # noqa: E402
 from jev_control_plane.failure_lab.mock import DeterministicMockJevAdapter  # noqa: E402
+from validate_comparison_artifacts import validate_artifacts  # noqa: E402
 
 
 def decision_input(case_id: str = "fixture-1") -> DecisionInput:
@@ -116,7 +118,11 @@ class MockJudgeOutputTests(unittest.TestCase):
             ProviderAttempt("fixture", "1", AttemptStatus.COMPLETED, 1.0)
         with self.assertRaises(ValueError):
             ProviderAttempt("fixture", "1", AttemptStatus.PROVIDER_FAILURE, 1.0,
-                            normalized_action=ControlAction.DENY)
+                            error_category="provider_failure", normalized_action=ControlAction.DENY)
+        with self.assertRaisesRegex(ValueError, "typed normalized action"):
+            ProviderAttempt("fixture", "1", AttemptStatus.COMPLETED, 1.0, normalized_action="ALLOW")
+        with self.assertRaisesRegex(ValueError, "recognized AttemptStatus"):
+            ProviderAttempt("fixture", "1", "completed", 1.0, normalized_action=ControlAction.ALLOW)
 
 
 class PairedMetricTests(unittest.TestCase):
@@ -162,6 +168,27 @@ class PairedMetricTests(unittest.TestCase):
         self.assertEqual(metrics["by_condition"]["jev"]["provider_or_parsing_failures"], 1)
         self.assertEqual(metrics["by_condition"]["llm"]["status_counts"], {"malformed_output": 1})
 
+    def test_one_condition_failure_excludes_only_its_pair_from_action_denominator(self):
+        expected = {"a": "ESCALATE", "b": "DENY", "c": "ALLOW"}
+        attempts = [
+            self.attempt("a", "jev", "ESCALATE"),
+            self.attempt("a", "llm", None, "provider_timeout"),
+            self.attempt("b", "jev", None, "runner_error"),
+            self.attempt("b", "llm", None, "abstained"),
+            self.attempt("c", "jev", "ALLOW"),
+            self.attempt("c", "llm", "ALLOW"),
+        ]
+        metrics = calculate_paired_metrics(expected.keys(), expected, attempts, ("jev", "llm"))
+        self.assertEqual(metrics["both_valid_action_denominator"], 1)
+        self.assertEqual(metrics["pairs_with_one_or_more_non_decision_status"], 2)
+        self.assertEqual(metrics["by_condition"]["jev"]["status_counts"],
+                         {"completed": 2, "runner_error": 1})
+
+    def test_invalid_completed_action_is_rejected(self):
+        attempts = [self.attempt("a", "jev", "ROUTE"), self.attempt("a", "llm", "ALLOW")]
+        with self.assertRaisesRegex(ValueError, "valid exactly for completed"):
+            calculate_paired_metrics(["a"], {"a": "ALLOW"}, attempts, ("jev", "llm"))
+
 
 class PairedRunnerTests(unittest.TestCase):
     def config(self, split="development"):
@@ -187,6 +214,7 @@ class PairedRunnerTests(unittest.TestCase):
             pairs = [json.loads(line) for line in (run_dir / "pairs.jsonl").read_text().splitlines()]
             self.assertEqual(manifest["schema_version"], "1.0")
             self.assertEqual(manifest["status"], "complete")
+            self.assertEqual(manifest["execution_status"], "all_attempts_returned_actions")
             self.assertEqual(manifest["purpose"], "synthetic_development_plumbing")
             self.assertFalse(manifest["configuration"]["policy_level_comparison_enabled"])
             self.assertEqual(len(attempts), 16)
@@ -197,6 +225,38 @@ class PairedRunnerTests(unittest.TestCase):
             self.assertEqual(summary["cases_total"], 8)
             self.assertEqual(summary["attempts_total"], 16)
             self.assertFalse(summary["policy_level_comparison_enabled"])
+            output_path = Path(temp) / "stdout.json"
+            output_path.write_text(json.dumps(result), encoding="utf-8")
+            self.assertEqual(validate_artifacts(output_path, ROOT), {"cases": 8, "attempts": 16, "pairs": 8})
+
+    def test_artifact_validator_rejects_summary_pair_metric_drift(self):
+        with tempfile.TemporaryDirectory() as temp:
+            runner = PairedComparisonRunner(
+                DatasetStore(ROOT / "experiments/datasets"), Path(temp) / "comparisons", project_root=ROOT,
+            )
+            result = runner.run(self.config(), self.comparison_config(), run_id="tampered-summary")
+            run_dir = Path(result["run_dir"])
+            summary_path = run_dir / "summary.json"
+            summary = json.loads(summary_path.read_text(encoding="utf-8"))
+            summary["paired_outcomes"]["action_disagreement"]["count"] += 1
+            summary_path.write_text(json.dumps(summary), encoding="utf-8")
+            output_path = Path(temp) / "stdout.json"
+            output_path.write_text(json.dumps(result), encoding="utf-8")
+            with self.assertRaisesRegex(ValueError, "does not reconcile"):
+                validate_artifacts(output_path, ROOT)
+
+    def test_failed_artifact_finalization_does_not_mark_manifest_complete(self):
+        with tempfile.TemporaryDirectory() as temp:
+            runner = PairedComparisonRunner(
+                DatasetStore(ROOT / "experiments/datasets"), Path(temp) / "comparisons", project_root=ROOT,
+            )
+            with patch("jev_control_plane.failure_lab.comparison.calculate_paired_metrics",
+                       side_effect=RuntimeError("forced finalization failure")):
+                with self.assertRaisesRegex(RuntimeError, "forced finalization failure"):
+                    runner.run(self.config(), self.comparison_config(), run_id="interrupted-run")
+            manifest_path = Path(temp) / "comparisons" / "runs" / "interrupted-run" / "manifest.json"
+            manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+            self.assertEqual(manifest["status"], "running")
 
     def test_holdout_and_validation_are_rejected_before_dataset_access(self):
         class NeverReadDataset:
@@ -228,6 +288,9 @@ class PairedRunnerTests(unittest.TestCase):
             self.assertEqual(len(failed), 8)
             self.assertTrue(all(row["status"] == "runner_error" for row in failed))
             self.assertTrue(all(row["error_category"] == "RuntimeError" for row in failed))
+            manifest = json.loads((run_dir / "manifest.json").read_text(encoding="utf-8"))
+            self.assertEqual(manifest["status"], "complete")
+            self.assertEqual(manifest["execution_status"], "contains_non_decision_attempts")
 
 
 if __name__ == "__main__":

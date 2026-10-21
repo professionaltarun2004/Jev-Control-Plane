@@ -130,12 +130,17 @@ class ProviderAttempt:
     def __post_init__(self) -> None:
         if not self.provider_id.strip() or not self.provider_version.strip():
             raise ValueError("provider identity and version are required")
+        if not isinstance(self.status, AttemptStatus):
+            raise ValueError("status must be a recognized AttemptStatus")
         if not isfinite(self.latency_ms) or self.latency_ms < 0:
             raise ValueError("latency_ms must be finite and non-negative")
-        if self.status is AttemptStatus.COMPLETED and self.normalized_action is None:
-            raise ValueError("completed attempts require a normalized action")
-        if self.status is not AttemptStatus.COMPLETED and self.normalized_action is not None:
-            raise ValueError("non-completed attempts cannot claim a normalized action")
+        if self.status is AttemptStatus.COMPLETED and not isinstance(self.normalized_action, ControlAction):
+            raise ValueError("completed attempts require a typed normalized action")
+        if self.status is not AttemptStatus.COMPLETED:
+            if self.normalized_action is not None:
+                raise ValueError("non-completed attempts cannot claim a normalized action")
+            if not self.error_category:
+                raise ValueError("non-completed attempts require an error category")
         if self.status is AttemptStatus.COMPLETED and self.error_category is not None:
             raise ValueError("completed attempts cannot have an error category")
 
@@ -446,6 +451,11 @@ class PairedComparisonRunner:
         })
         self._write_json(run_dir / "summary.json", metrics)
         manifest = json.loads((run_dir / "manifest.json").read_text(encoding="utf-8"))
+        manifest["execution_status"] = (
+            "all_attempts_returned_actions"
+            if all(row["status"] == AttemptStatus.COMPLETED.value for row in attempts)
+            else "contains_non_decision_attempts"
+        )
         manifest["status"] = "complete"
         manifest["finished_at"] = self._timestamp()
         self._write_json(run_dir / "manifest.json", manifest)

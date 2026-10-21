@@ -33,6 +33,9 @@ def calculate_paired_metrics(
         raise ValueError("paired metrics require at least one case")
     if set(expected_actions) != set(expected_ids):
         raise ValueError("expected actions must cover exactly the paired case IDs")
+    valid_actions = {"ALLOW", "DENY", "ESCALATE"}
+    if any(action not in valid_actions for action in expected_actions.values()):
+        raise ValueError("expected actions must use ALLOW, DENY, or ESCALATE")
     condition_ids = tuple(conditions)
     if len(condition_ids) != 2 or len(set(condition_ids)) != 2:
         raise ValueError("paired metrics require exactly two distinct conditions")
@@ -48,6 +51,13 @@ def calculate_paired_metrics(
         key = (case_id, condition_id)
         if key in indexed:
             raise ValueError(f"duplicate attempt for case/condition: {key}")
+        status = row.get("status")
+        action = row.get("normalized_action")
+        if status not in {"completed", "abstained", "provider_timeout", "provider_failure",
+                          "malformed_output", "schema_invalid_action", "runner_error"}:
+            raise ValueError(f"attempt has an unrecognized status: {status}")
+        if (status == "completed") != (action in valid_actions):
+            raise ValueError("normalized action must be valid exactly for completed attempts")
         indexed[key] = row
 
     expected_keys = {(case_id, condition) for case_id in expected_ids for condition in condition_ids}
