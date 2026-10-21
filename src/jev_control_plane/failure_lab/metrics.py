@@ -14,6 +14,109 @@ from statistics import median
 from typing import Any, Iterable, Mapping
 
 
+def calculate_paired_metrics(
+    case_ids: Iterable[str],
+    expected_actions: Mapping[str, str],
+    attempts: Iterable[Mapping[str, Any]],
+    conditions: Iterable[str] = ("jev_mock", "llm_judge_mock"),
+) -> dict[str, Any]:
+    """Summarize paired action outcomes after validating the full case matrix.
+
+    Correctness comparisons use only cases where both conditions returned a
+    valid action. Provider errors and abstentions remain separate operational
+    counts instead of being silently scored as wrong actions or escalations.
+    """
+    expected_ids = tuple(case_ids)
+    if len(expected_ids) != len(set(expected_ids)):
+        raise ValueError("paired metrics require unique expected case IDs")
+    if not expected_ids:
+        raise ValueError("paired metrics require at least one case")
+    if set(expected_actions) != set(expected_ids):
+        raise ValueError("expected actions must cover exactly the paired case IDs")
+    condition_ids = tuple(conditions)
+    if len(condition_ids) != 2 or len(set(condition_ids)) != 2:
+        raise ValueError("paired metrics require exactly two distinct conditions")
+
+    indexed: dict[tuple[str, str], Mapping[str, Any]] = {}
+    for row in attempts:
+        case_id = row.get("case_id")
+        condition_id = row.get("condition_id")
+        if case_id not in expected_ids:
+            raise ValueError(f"attempt references unexpected case ID: {case_id}")
+        if condition_id not in condition_ids:
+            raise ValueError(f"attempt references unexpected condition: {condition_id}")
+        key = (case_id, condition_id)
+        if key in indexed:
+            raise ValueError(f"duplicate attempt for case/condition: {key}")
+        indexed[key] = row
+
+    expected_keys = {(case_id, condition) for case_id in expected_ids for condition in condition_ids}
+    missing = expected_keys - indexed.keys()
+    if missing:
+        raise ValueError(f"paired metrics are missing attempts: {sorted(missing)}")
+
+    pairs = []
+    for case_id in expected_ids:
+        left = indexed[(case_id, condition_ids[0])]
+        right = indexed[(case_id, condition_ids[1])]
+        if left.get("status") == "completed" and right.get("status") == "completed":
+            left_action, right_action = left.get("normalized_action"), right.get("normalized_action")
+            if not left_action or not right_action:
+                raise ValueError("completed attempts must contain normalized actions")
+            pairs.append((left["normalized_action"], right["normalized_action"], expected_actions[case_id]))
+
+    both_correct = sum(
+        left_action == expected and right_action == expected
+        for left_action, right_action, expected in pairs
+    )
+    jev_only_correct = sum(
+        left_action == expected and right_action != expected
+        for left_action, right_action, expected in pairs
+    )
+    llm_only_correct = sum(
+        left_action != expected and right_action == expected
+        for left_action, right_action, expected in pairs
+    )
+    neither_correct = len(pairs) - both_correct - jev_only_correct - llm_only_correct
+    disagreements = sum(left_action != right_action for left_action, right_action, _ in pairs)
+
+    by_condition: dict[str, Any] = {}
+    for condition_id in condition_ids:
+        rows = [indexed[(case_id, condition_id)] for case_id in expected_ids]
+        status_counts = Counter(str(row.get("status", "missing_status")) for row in rows)
+        latencies = [float(row["latency_ms"]) for row in rows if row.get("latency_ms") is not None]
+        by_condition[condition_id] = {
+            "attempted": len(rows),
+            "completed_with_action": status_counts.get("completed", 0),
+            "abstained": status_counts.get("abstained", 0),
+            "provider_or_parsing_failures": len(rows) - status_counts.get("completed", 0) - status_counts.get("abstained", 0),
+            "status_counts": dict(sorted(status_counts.items())),
+            "median_attempt_latency_ms": median(latencies) if latencies else None,
+            "latency_observations": len(latencies),
+        }
+
+    denominator = len(pairs)
+    return {
+        "cases_total": len(expected_ids),
+        "conditions": list(condition_ids),
+        "both_valid_action_denominator": denominator,
+        "pairs_with_both_valid_actions": denominator,
+        "pairs_with_one_or_more_non_decision_status": len(expected_ids) - denominator,
+        "paired_outcomes": {
+            "both_correct": {"count": both_correct, "denominator": denominator},
+            "jev_only_correct": {"count": jev_only_correct, "denominator": denominator},
+            "llm_mock_only_correct": {"count": llm_only_correct, "denominator": denominator},
+            "neither_correct": {"count": neither_correct, "denominator": denominator},
+            "action_disagreement": {"count": disagreements, "denominator": denominator},
+        },
+        "by_condition": by_condition,
+        "interpretation": (
+            "Descriptive plumbing counts only; mock adapters are not Jev or LLM behavior. "
+            "Policy-level equivalence is disabled, and provider evidence is not interchangeable."
+        ),
+    }
+
+
 def calculate_metrics(results: Iterable[Mapping[str, Any]], elapsed_seconds: float,
                       validation_criteria: Any | None = None) -> dict[str, Any]:
     rows = tuple(results)

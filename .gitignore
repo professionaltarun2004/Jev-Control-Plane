@@ -24,6 +24,7 @@ decision-logs/
 # Local experiment runs are ignored by default. Existing curated runs remain
 # tracked; deliberately curated new evidence can be force-added for review.
 experiments/runs/*/
+experiments/comparisons/runs/*/
 
 # Internal maintainer notes; keep a local copy, not a repository copy.
 AI review about the repo.txt

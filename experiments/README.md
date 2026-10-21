@@ -28,6 +28,25 @@ python -m unittest discover -s tests -v
 
 The tests use temporary fixtures for split and lock behavior. They do not access the repository's Holdout data or issue Jev API calls.
 
+## Run the M4 paired mock plumbing check
+
+After installing the project, run:
+
+```sh
+python examples/run_mock_comparison.py
+```
+
+This runs the existing deterministic Jev-shaped mock control path and a separate deterministic LLM-shaped action fixture over the same Development cases. Neither condition receives expected labels or annotation notes; the judge mock is not a language model. It makes no network calls and needs no credentials. Output is written to `experiments/comparisons/runs/<run-id>/`:
+
+| File | Contents |
+| --- | --- |
+| `manifest.json` | Schema/config versions, condition identities, dataset/annotation digests, code metadata, and explicit mock-only limitations |
+| `attempts.jsonl` | One label-free provider attempt per condition and case, including native output, status, latency, and Jev policy result where applicable |
+| `pairs.jsonl` | Evaluator-owned expected outcomes and per-case action correctness after both attempts |
+| `summary.json` | Paired counts, valid-pair denominators, and failure counts by condition |
+
+The Jev side uses the existing legacy mock policy; the judge mock emits a direct action without that policy. Policy-level equivalence is therefore disabled. The paired counts are only plumbing checks on synthetic Development labels, not a fair model comparison or evidence about Jev/LLM quality. Recorded latency is local adapter overhead, not model inference latency. Validation and Holdout are rejected by this runner.
+
 ## Data layout
 
 Each split keeps `cases.jsonl` and optional `annotations.jsonl` sidecars. Cases contain state, decision, and ground truth with provenance/certainty; annotations contain perturbation family, description, and optional matched `base_case_id`. See [dataset details](datasets/README.md) and the [ground-truth construction rules](datasets/ground_truth_rules.md).

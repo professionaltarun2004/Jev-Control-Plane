@@ -18,6 +18,14 @@ from .dataset import DatasetStore, DatasetSplit
 from .experiment import ExecutionMode, ExperimentConfig, ExperimentLock, ExperimentMatrix, ValidationCriteria
 from .runner import ExperimentRunner, RunOutcome
 from .mock import DeterministicMockJevAdapter
+from .comparison import (
+    AttemptStatus,
+    DecisionInput,
+    DeterministicMockJudge,
+    PairedComparisonConfig,
+    PairedComparisonRunner,
+    ProviderAttempt,
+)
 
 __all__ = [
     "BenchmarkCase", "CaseAnnotation", "DatasetSplit", "DatasetStore", "ExperimentArtifactStore",
@@ -25,4 +33,6 @@ __all__ = [
     "DeterministicMockJevAdapter", "RunOutcome",
     "OutcomeCategory", "GroundTruthCertainty", "GroundTruthProvenance",
     "GroundTruthSource", "PerturbationFamily",
+    "AttemptStatus", "DecisionInput", "DeterministicMockJudge",
+    "PairedComparisonConfig", "PairedComparisonRunner", "ProviderAttempt",
 ]

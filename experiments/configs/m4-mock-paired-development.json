@@ -1,0 +1,10 @@
+{
+  "experiment_id": "m4-mock-paired-development",
+  "dataset_id": "failure-lab-synthetic-v1",
+  "split": "development",
+  "jev_config_file": "m2-mock-development.json",
+  "schema_version": "1.0",
+  "llm_condition_id": "llm_judge_mock",
+  "llm_response_schema_version": "1.0",
+  "policy_level_comparison_enabled": false
+}
