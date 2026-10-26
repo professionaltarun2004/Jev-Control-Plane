@@ -1,4 +1,4 @@
-"""Deterministic mock Jev adapter for runner verification only.
+"""Deterministic mock Jev adapter for runner verification only
 
 Outputs depend on the decision state and view definition, never on benchmark
 ground truth. This makes repeated plumbing tests stable without implying
