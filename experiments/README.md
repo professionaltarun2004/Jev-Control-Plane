@@ -12,7 +12,7 @@ The authoritative research methods are in [EXPERIMENT_PROTOCOL.md](../EXPERIMENT
 
 ## Run a mock plumbing experiment
 
-The clone, virtual-environment, installation, and test steps are in the [README quick start](../README.md#quick-start-offline-mock-path). From the activated environment and repository root, run:
+The clone, virtual-environment, installation, and test steps are in the [README quick start](../README.md#quick-start). From the activated environment and repository root, run:
 
 ```sh
 python examples/run_mock_experiment.py

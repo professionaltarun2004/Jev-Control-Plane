@@ -127,11 +127,28 @@ The Holdout runner requires a write-once configuration lock created from a compl
 - [Dataset schema and split layout](experiments/datasets/README.md)
 - [Ground-truth construction rules](experiments/datasets/ground_truth_rules.md)
 - [Project specification](SPEC.md)
+- [M3A decision proposal and open owner decisions](M3A_DECISION_PROPOSAL.md)
+- [M3 validation design specification](M3_VALIDATION_SPEC.md)
 - [Milestone tasks and evidence trail](.genesis/PLAN.md)
 
 To contribute, start with [CONTRIBUTING.md](CONTRIBUTING.md). Report vulnerabilities using [SECURITY.md](SECURITY.md), not a public issue. The project follows its [Code of Conduct](CODE_OF_CONDUCT.md).
 
 The Noul API exposes a yes probability without a separate confidence field. The adapter preserves that distinction. Current runtime policy defaults are legacy experimental behavior, not approved M3A criteria; the primary Jev condition, evidence mappings and aggregation, thresholds, and acceptance criteria remain open in [M3_VALIDATION_SPEC.md](M3_VALIDATION_SPEC.md).
+
+## Repository map
+
+| Path | Purpose |
+| --- | --- |
+| `src/jev_control_plane/` | Typed decision flow, Jev adapter, evidence aggregation, deterministic policy, records, and Failure Lab. |
+| `tests/` | Offline unit tests for the control plane, split/lock protections, runners, and comparison artifacts. |
+| `examples/` | Offline mock runs and the credential-dependent live Jev example. |
+| `experiments/configs/` | Versioned experiment configurations. |
+| `experiments/datasets/` | Development cases and annotations; Validation and Holdout are not populated. |
+| `experiments/runs/` and `experiments/comparisons/runs/` | Local generated artifacts; new runs are ignored by default. |
+| `SPEC.md` | Engineering requirements and milestone acceptance criteria. |
+| `EXPERIMENT_PROTOCOL.md` | Authoritative research methodology and split discipline. |
+| `M3_VALIDATION_SPEC.md` and `M3A_DECISION_PROPOSAL.md` | Draft Validation contract and unresolved M3A owner decisions. |
+| `.genesis/` | Engineering plan, project state, and verification evidence; not a runtime dependency. |
 
 ## License status
 
