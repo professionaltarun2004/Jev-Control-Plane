@@ -1,8 +1,8 @@
 {
   "project": "Jev Control Plane",
   "workflow": "new-product",
-  "phase": "t-3a1-m3a-decision-proposal",
-  "objective": "Prepare an evidence-grounded M3A decision proposal and enforce only documented provider-output invariants.",
+  "phase": "t-3a-m3a-research-contract-finalization",
+  "objective": "Make approved and unresolved M3A research decisions traceable without selecting policy on the owner's behalf.",
   "specification": "SPEC.md",
   "active_task": "T-3A",
   "tasks": [
@@ -11,7 +11,7 @@
     {"id": "T-2B", "status": "complete", "outcome": "Jev-only experiment runner with deterministic mock mode, retained errors, decision records, and supported metrics.", "risk": "medium", "requirements": ["M2-FR-5", "M2-FR-6", "M2-FR-7", "M2-FR-8", "M2-AC-4", "M2-AC-5", "M2-AC-6", "M2-AC-7"], "gate": "python -m unittest discover -s tests -v; python examples/run_mock_experiment.py", "evidence": ".genesis/evidence/m2-mock-run.json"},
     {"id": "T-2C", "status": "complete", "outcome": "Research and contributor documentation with evidence-backed mock output, limitations, and future work separated.", "risk": "low", "requirements": ["M2-FR-9", "M2-NFR-1", "M2-NFR-2", "M2-NFR-3", "M2-NFR-4", "M2-AC-8", "M2-AC-9"], "gate": "Inspect generated experiment artifacts and documentation", "evidence": ".genesis/evidence/m2-mock-run.json"},
     {"id": "T-2.5", "status": "complete", "outcome": "Authoritative executable protocol, strengthened local lock/split plumbing, evidence/outcome distinction, and verified documentation; live Jev and Holdout remain unrun.", "risk": "high", "requirements": ["M2.5-FR-1", "M2.5-FR-2", "M2.5-FR-3", "M2.5-FR-4", "M2.5-FR-5", "M2.5-FR-6", "M2.5-FR-7", "M2.5-AC-1", "M2.5-AC-2", "M2.5-AC-3", "M2.5-AC-4", "M2.5-AC-5"], "gate": "python -m unittest discover -s tests -v; python -m compileall src tests; git diff --check; validate JSON/JSONL artifacts", "evidence": ".genesis/evidence/m2.5-verification.json"},
-    {"id": "T-3A", "status": "open", "outcome": "T-3A.1 produced a review proposal; primitive/action mappings, aggregation, evidence requirements, and acceptance criteria still need explicit approval.", "risk": "high", "requirements": [], "gate": "Design review and explicit decision record; no Jev experiment", "evidence": ".genesis/evidence/t3a1-decision-proposal.json"},
+    {"id": "T-3A", "status": "open", "outcome": "The D1-D12 register now links each decision status, source, consequence, and exact owner question; primary condition, mappings, aggregation, evidence requirements, and acceptance criteria remain unresolved.", "risk": "high", "requirements": [], "gate": "Owner review and explicit decision records; no Jev experiment", "evidence": ".genesis/evidence/t3a-finalization-review.json"},
     {"id": "T-3A.1", "status": "complete", "outcome": "Decision proposal prepared; no unresolved research choice is adopted. Added a tested TypeSafe probability-distribution integrity check only.", "risk": "high", "requirements": [], "gate": "Review proposal; unittest; compileall; artifact validation; diff check", "evidence": ".genesis/evidence/t3a1-decision-proposal.json"},
     {"id": "T-3B", "status": "complete", "outcome": "Fresh-clone installation, offline mock execution, artifact inspection, and all 31 tests verified. No Jev research claim is made.", "risk": "low", "requirements": [], "gate": "Fresh virtual environment install; unittest; offline mock example; inspect artifacts; git diff --check", "evidence": ".genesis/evidence/m3b-verification.json"},
     {"id": "T-4A", "status": "complete", "outcome": "Mock-only paired comparison runs both deterministic conditions independently on Development cases; policy-level equivalence remains disabled while M3A decisions are open.", "risk": "medium", "requirements": [], "gate": "Unittest; run paired mock; inspect versioned paired artifacts", "evidence": ".genesis/evidence/m4a1-verification.json"},

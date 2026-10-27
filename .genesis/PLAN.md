@@ -72,7 +72,7 @@ Live Jev performance, threshold sweeps, calibration, cost accounting, realistic 
 
 ## T-3A — Reconcile the M3A research contract
 
-**Status:** open. PR #1 was merged in commit ed99056b7665d2311f1568733259eaf10b11f420. The T-3A.1 proposal and audit corrected stale contract wording and classified retained runtime defaults as legacy; M3A primitive/action mappings, multi-view aggregation, evidence requirements, and pilot acceptance criteria remain unresolved. See `M3A_DECISION_PROPOSAL.md` and `.genesis/evidence/t3a1-decision-proposal.json`.
+**Status:** open. PR #1 was merged in commit ed99056b7665d2311f1568733259eaf10b11f420. T-3A.1 produced the initial proposal; the current review adds a source-linked D1–D12 decision register with explicit status, consequence, and owner question. M3A primitive/action mappings, multi-view aggregation, evidence requirements, and pilot acceptance criteria remain unresolved. See `M3A_DECISION_PROPOSAL.md` and `.genesis/evidence/t3a-finalization-review.json`.
 
 **Boundary:** review and approve research semantics explicitly. Do not infer choices from legacy runtime defaults. No live Jev or Holdout run is part of contract reconciliation.
 

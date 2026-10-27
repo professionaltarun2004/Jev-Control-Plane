@@ -1,0 +1,35 @@
+{
+  "task_id": "T-3A",
+  "status": "in_progress_owner_decisions_remain",
+  "source_revision": "b053d950f1532137e5334b4324dcdda0038f9c7c",
+  "branch": "master",
+  "scope": "Review repository authority and make existing T-3A decision items traceable. No research-policy decision was selected.",
+  "changes": {
+    "document": "M3A_DECISION_PROPOSAL.md",
+    "summary": "Added a target-task boundary and source-linked D1-D12 register with status, remaining unknown, consequence, and exact owner decision. Retained existing per-decision options, recommendations, empirical evidence needs, and contract tests.",
+    "decision_semantics": "Only the synthetic authorization task/rules and provider response-schema invariant are identified as established at their stated scope. Primary Jev condition, mappings, aggregation, thresholds, failure policy, and acceptance criteria remain unresolved or proposed."
+  },
+  "verification": {
+    "unittest": {
+      "command": "$env:TEMP=(Join-Path $PWD '.tmp-tests'); $env:TMP=$env:TEMP; python -m unittest discover -s tests -v",
+      "result": "48 passed, 1 skipped",
+      "note": "One optional SDK-dependent test skipped because the TypeSafe SDK is not installed. Holdout-gate tests use isolated temporary fixtures."
+    },
+    "experiments": "No mock experiment, live Jev request, or live LLM request was run.",
+    "validation_data": "No Validation dataset was created or accessed.",
+    "holdout_data": "Repository Holdout data was not accessed."
+  },
+  "research_state": {
+    "t3a": "open",
+    "t3a1": "complete as proposal preparation only; its output does not approve owner decisions",
+    "synthetic_authorization_semantics": "approved at the fixture-specific scope recorded in M3_VALIDATION_SPEC.md",
+    "jev_policy_and_experiment_choices": "unresolved/proposed as itemized in the D1-D12 register",
+    "validation_dataset": "36 rows / 12 families remains a target; no cases populated",
+    "research_readiness": "unchanged; not declared ready"
+  },
+  "git": {
+    "head_unchanged": "b053d950f1532137e5334b4324dcdda0038f9c7c",
+    "commit_created": false,
+    "push_performed": false
+  }
+}
