@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from math import isfinite
+from math import isclose, isfinite
 from time import perf_counter
 from typing import Any, Mapping, Protocol
 
@@ -149,6 +149,10 @@ class TypeSafeJevAdapter:
         probabilities = {key: float(value) for key, value in values.items()}
         if not probabilities or any(not isfinite(value) or not 0 <= value <= 1 for value in probabilities.values()):
             raise ValueError(f"Jev probabilities are invalid for {view_id}")
+        # Choice and Score return probability distributions. Permit harmless
+        # serialization rounding, but do not normalize malformed provider data.
+        if not isclose(sum(probabilities.values()), 1.0, rel_tol=0.0, abs_tol=1e-9):
+            raise ValueError(f"Jev probabilities must sum to 1 for {view_id}")
         return probabilities
 
     @staticmethod

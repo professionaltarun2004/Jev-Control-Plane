@@ -72,9 +72,17 @@ Live Jev performance, threshold sweeps, calibration, cost accounting, realistic 
 
 ## T-3A — Reconcile the M3A research contract
 
-**Status:** open. PR #1 was merged in commit ed99056b7665d2311f1568733259eaf10b11f420. The M3A research decisions remain open. M3A primitive/action mappings, multi-view aggregation, evidence requirements, and pilot acceptance criteria remain unresolved.
+**Status:** open. PR #1 was merged in commit ed99056b7665d2311f1568733259eaf10b11f420. The T-3A.1 proposal and audit corrected stale contract wording and classified retained runtime defaults as legacy; M3A primitive/action mappings, multi-view aggregation, evidence requirements, and pilot acceptance criteria remain unresolved. See `M3A_DECISION_PROPOSAL.md` and `.genesis/evidence/t3a1-decision-proposal.json`.
 
 **Boundary:** review and approve research semantics explicitly. Do not infer choices from legacy runtime defaults. No live Jev or Holdout run is part of contract reconciliation.
+
+### T-3A.1 — Research decision proposal
+
+**Status:** proposal prepared; awaiting owner review. T-3A remains open. The proposal distinguishes software invariants, research hypotheses, and approval-required policy choices; no policy choice, Validation configuration, or acceptance criterion is approved by this subtask.
+
+**Boundaries:** no live Jev/LLM request, no Validation or Holdout read/run, no dataset creation, no runtime policy change. A narrow adapter input-integrity check may reject malformed provider probability distributions without normalizing them.
+
+**Evidence:** `.genesis/evidence/t3a1-decision-proposal.json`.
 
 ## T-3B — Mock demo and clean-clone experience
 

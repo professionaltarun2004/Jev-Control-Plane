@@ -1,0 +1,82 @@
+{
+  "task_id": "T-3A.1",
+  "status": "complete_proposal_pending_owner_decisions",
+  "source_revision": "3ecb1e9086ff69ff4bacca3a76a76362ef374959",
+  "branch": "master",
+  "scope": "Read current M3A contract/runtime; prepare a decision proposal; implement only a documented adapter schema invariant. No M3A policy or research decisions adopted.",
+  "deliverable": "M3A_DECISION_PROPOSAL.md",
+  "decision_classification": [
+    "software invariants",
+    "research hypotheses",
+    "approval-required policy choices"
+  ],
+  "implementation": {
+    "files": [
+      "src/jev_control_plane/jev.py",
+      "tests/test_control_plane.py"
+    ],
+    "change": "Choice/Score probability vectors are rejected if they are outside [0,1], non-finite, empty, or do not sum to one within 1e-9 absolute tolerance. Values are not silently renormalized.",
+    "basis": "Current official TypeSafe Choice/Score documentation specifies probabilities for every option/level summing to one.",
+    "does_not_change": [
+      "primitive-to-action mappings",
+      "cross-view aggregation or weighting",
+      "policy thresholds",
+      "escalation rules",
+      "Validation/Holdout access"
+    ]
+  },
+  "verification": {
+    "unittest": {
+      "command": "$env:TEMP=(Join-Path $PWD '.tmp-tests'); $env:TMP=$env:TEMP; python -m unittest discover -s tests -v",
+      "result": "48 passed, 1 skipped",
+      "note": "The SDK-dependent test was skipped because typesafe-sdk is not installed. Workspace-local TEMP/TMP were required because the default sandbox temp directory was inaccessible."
+    },
+    "compileall": {
+      "command": "python -m compileall -q src tests examples scripts",
+      "result": "passed"
+    },
+    "artifact_validation": {
+      "command": "python scripts/validate_comparison_artifacts.py .tmp-tests/m4-mock-output.json",
+      "result": "passed: 8 Development cases, 16 attempts, 8 pairs",
+      "artifact_origin": "Previously generated offline mock plumbing artifact; no new mock experiment was run for T-3A.1."
+    },
+    "git_diff_check": {
+      "command": "git diff --check",
+      "result": "passed; only Git line-ending conversion warnings were reported"
+    },
+    "structured_artifacts": {
+      "command": "Python JSON/JSONL parse of experiments/ and .genesis/ artifacts",
+      "result": "passed: 85 files parsed, including 296 non-empty JSONL records"
+    }
+  },
+  "open_decisions": [
+    "primary Jev condition and primitive/action mappings",
+    "cross-view aggregation, weighting, and disagreement behavior",
+    "action-specific evidence requirements and thresholds",
+    "missing-evidence, technical-failure, timeout, retry, and caller action semantics",
+    "unnecessary-escalation definition",
+    "Validation dataset review, family allocation, and acceptance criteria",
+    "shadow-mode and enforcement gates"
+  ],
+  "research_status": {
+    "t3a_parent": "open",
+    "validation_rows": "36 rows / 12 families remains a design target; no Validation data populated",
+    "live_jev": "not run",
+    "live_llm": "not run",
+    "new_mock_experiment": "not run",
+    "repository_validation_data": "not accessed",
+    "repository_holdout_data": "not accessed; Holdout-gate tests use isolated temporary fixtures only",
+    "research_readiness": "unchanged; not declared ready"
+  },
+  "limitations": [
+    "The deterministic paired LLM-shaped condition is a mock fixture and not an LLM baseline.",
+    "The existing Jev-shaped comparison condition uses legacy policy behavior; policy-level equivalence remains disabled.",
+    "Current Development labels are synthetic plumbing truth and do not establish provider quality or real-workflow value.",
+    "Official API documentation describes response semantics but cannot establish task-specific reliability, calibration, or sufficiency."
+  ],
+  "git": {
+    "head_unchanged": "3ecb1e9086ff69ff4bacca3a76a76362ef374959",
+    "commit_created": false,
+    "push_performed": false
+  }
+}

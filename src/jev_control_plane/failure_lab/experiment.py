@@ -28,7 +28,7 @@ class ExecutionMode(StrEnum):
 
 @dataclass(frozen=True)
 class ValidationCriteria:
-    """Predeclared pilot interpretation cutoffs; never trained from run outcomes."""
+    """Legacy configurable interpretation cutoffs; not approved M3A criteria."""
 
     minimum_final_action_accuracy: float = 0.80
     minimum_correct_autonomous_coverage: float = 0.50

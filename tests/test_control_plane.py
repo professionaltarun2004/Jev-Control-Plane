@@ -147,6 +147,14 @@ class AggregationAndPolicyTests(unittest.TestCase):
 
 
 class AdapterTests(unittest.TestCase):
+    def test_choice_and_score_probability_distributions_must_sum_to_one(self):
+        normalized = TypeSafeJevAdapter._validate_probabilities(
+            {"allow": 0.7, "deny": 0.3000000001}, "choice"
+        )
+        self.assertEqual(normalized, {"allow": 0.7, "deny": 0.3000000001})
+        with self.assertRaisesRegex(ValueError, "must sum to 1"):
+            TypeSafeJevAdapter._validate_probabilities({0: 0.7, 1: 0.2}, "score")
+
     def test_official_adapter_normalizes_noul_and_preserves_raw_answer(self):
         class Question:
             def __init__(self, **kwargs):

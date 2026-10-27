@@ -24,6 +24,7 @@ M3 prepares a small decision-level Validation study. It does not establish gener
 - The former ALLOW support value `0.80` and DENY support value `0.70` are **withdrawn as fixed M3 criteria**. Both are **PROVISIONAL / OPEN**; no replacement numbers are specified.
 - Any prior confidence or Noul support values are provisional parameters only, not validated requirements. Their applicability by primitive and action remains open until explicitly selected and frozen before a live run.
 - The previously written pilot cutoffs (including accuracy, coverage, escalation, and error cutoffs) are not established scientific criteria. They must be reviewed and either explicitly predeclared or removed before live Validation. This revision does not adopt them as fixed acceptance criteria.
+- The implementation retains legacy defaults: `PolicyConfig` defaults to minimum confidence `0.70` and minimum Noul support `0.80`; `ValidationCriteria` defaults to minimum accuracy `0.80`, minimum correct autonomous coverage `0.50`, minimum correct escalation rate `0.80`, maximum unnecessary-escalation rate `0.20`, and zero false ALLOW/DENY. These code defaults preserve existing plumbing and are not approved M3A requirements. The metrics layer only emits a sufficiency assessment when criteria are explicitly supplied; no M3A configuration currently supplies approved criteria.
 - Any numerical values eventually selected are experimental policy choices, not safety constants or empirically justified probability thresholds. Do not derive them directly from hypothetical error costs.
 
 ## C. Open design questions — do not infer values
@@ -154,7 +155,7 @@ Measure latency only from actual run observations and report sample size/method.
 
 ### M3A status and exit boundary
 
-This contract is a design draft. The synthetic authorization rule above and its coverage, validity, precedence, and integrity semantics are approved. Jev aggregation, evidence thresholds, the frozen comparison configuration, and pilot acceptance criteria remain open. The existing [EXPERIMENT_PROTOCOL.md](EXPERIMENT_PROTOCOL.md) still contains legacy Noul and disagreement behavior; it must be reconciled with the approved pilot contract before implementation. This document does not authorize code changes, live Jev Validation, or Holdout access.
+This contract is a design draft. The synthetic authorization rule above and its coverage, validity, precedence, and integrity semantics are approved. Jev aggregation, evidence thresholds, the frozen comparison configuration, and pilot acceptance criteria remain open. [EXPERIMENT_PROTOCOL.md](EXPERIMENT_PROTOCOL.md) now explicitly marks its legacy Noul and disagreement behavior as non-M3A defaults and gives the M3A contract precedence; that reconciliation does not resolve the open pilot decisions. This document does not authorize code changes, live Jev Validation, or Holdout access.
 
 ## Experiment matrix
 

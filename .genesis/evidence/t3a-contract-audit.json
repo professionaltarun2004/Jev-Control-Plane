@@ -1,0 +1,76 @@
+{
+  "task_id": "T-3A",
+  "status": "in_progress",
+  "scope": "Audit and minimal documentation reconciliation. No unresolved Jev policy semantics selected.",
+  "source_revision": "3ecb1e9086ff69ff4bacca3a76a76362ef374959",
+  "changes": [
+    "Corrected M3_VALIDATION_SPEC.md so it no longer says the already reconciled EXPERIMENT_PROTOCOL.md is awaiting reconciliation.",
+    "Documented retained runtime and ValidationCriteria defaults as legacy implementation defaults, not approved M3A requirements.",
+    "Clarified the ValidationCriteria source docstring without changing runtime behavior."
+  ],
+  "local_verification": {
+    "environment": {
+      "os": "Windows",
+      "python": "3.12.5",
+      "temporary_directory": "repository .tmp-tests (ignored); default sandbox temp directory was inaccessible"
+    },
+    "unittest": {
+      "command": "python -m unittest discover -s tests -v",
+      "result": "47 passed, 1 skipped",
+      "note": "Passed after setting TEMP and TMP to the ignored workspace-local temporary directory. One SDK-dependent test skipped because the official SDK is not installed in this Python environment."
+    },
+    "compileall": {
+      "command": "python -m compileall -q src tests examples scripts",
+      "result": "passed"
+    },
+    "development_mock": {
+      "command": "python examples/run_mock_experiment.py",
+      "run_id": "m2-mock-development-20261027T141839466200Z",
+      "result": "passed",
+      "cases": 8,
+      "correct_final_actions": 5,
+      "incorrect_final_actions": 3,
+      "escalated": 8,
+      "runner_errors": 0,
+      "interpretation": "Synthetic deterministic plumbing only; not Jev performance or research findings."
+    },
+    "paired_mock": {
+      "command": "python examples/run_mock_comparison.py",
+      "run_id": "m4-mock-paired-development-9add2db9ee2e",
+      "validator_command": "python scripts/validate_comparison_artifacts.py .tmp-tests/m4-mock-output.json",
+      "validator_result": "passed: 8 cases, 16 attempts, 8 pairs",
+      "paired_outcomes": {
+        "both_correct": "2/8",
+        "jev_mock_only_correct": "3/8",
+        "llm_judge_mock_only_correct": "0/8",
+        "neither_correct": "3/8",
+        "action_disagreement": "6/8"
+      },
+      "interpretation": "Synthetic Development mock plumbing only; adapters do not represent Jev or LLM behavior."
+    }
+  },
+  "research_decisions": {
+    "synthetic_authorization_contract": "Approved fixture-specific coverage, completeness, authority/version, half-open currency interval, prohibition precedence, closed-world DENY, and ESCALATE semantics remain documented in M3_VALIDATION_SPEC.md.",
+    "jev_aggregation_and_weighting": "open",
+    "primitive_action_mappings": "open",
+    "action_specific_evidence_requirements_and_thresholds": "open",
+    "escalation_and_unnecessary_escalation_criteria": "open",
+    "pilot_acceptance_criteria": "open",
+    "validation_dataset": "36 rows across 12 families remain a design target; no Validation dataset has been populated.",
+    "live_jev": "not run",
+    "live_llm": "not run",
+    "validation": "not run",
+    "repository_holdout_data": "not accessed; holdout-gate unit tests use isolated temporary fixtures only"
+  },
+  "limitations": [
+    "The current runtime still has legacy deterministic disagreement/unmapped behavior and legacy confidence/Noul defaults; this audit does not adopt them for M3A.",
+    "The 8-case Development mock does not establish Jev performance, LLM performance, comparative quality, real workflow value, calibration, safety, or generalization.",
+    "T-3A remains open because required M3A aggregation, mappings, evidence requirements, and pilot acceptance decisions have not been approved."
+  ],
+  "git": {
+    "branch": "master",
+    "head_unchanged": "3ecb1e9086ff69ff4bacca3a76a76362ef374959",
+    "commit_created": false,
+    "push_performed": false
+  }
+}
